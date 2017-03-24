@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Start Patrolling"
+        android:id="@+id/btn_startpetroling"
+        android:textStyle="bold"
+        android:background="@color/green_2"
+        android:textColor="@color/white"
+        android:textSize="30sp"
+        android:layout_margin="20dp"/>
+
+    <FrameLayout
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        tools:context="com.ips_sentry.MainActivity"
+        tools:ignore="MergeRootFrame" />
+
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="New Pillar Entry"
+        android:id="@+id/btn_new_pillar_entry"
+        android:layout_centerInParent="true"
+        android:textStyle="bold"
+        android:background="@color/green_2"
+        android:textColor="@color/white"
+        android:textSize="30sp"
+        android:visibility="gone"
+        android:layout_margin="20dp"/>
+
+</RelativeLayout>

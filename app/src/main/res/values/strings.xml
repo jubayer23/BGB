@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">BGB</string>
+
+
+    <string name="facebook_app_id">1812069779049265</string>
+    <string name="login_page_activity">Login</string>
+    <string name="HomeActivity">Home</string>
+
+    <string name="drawer_open">drawer open</string>
+    <string name="drawer_close">drawer close</string>
+    <string name="new_pillars_entry">New Pillars Entry</string>
+    <string name="take_pic">Take Pillar Picture</string>
+    <string name="change_pic">Change Picture</string>
+
+    <string name="cancel_upload">Cancel upload</string>
+    <string name="upload_progress">Upload progress: % s</string>
+    <string name="upload">Upload</string>
+    <string name="title_activity_report_to_bgb">Report To Bgb</string>
+    <string name="about">The app is for personal communication between BGB internal connections.</string>
+    <string name="about_page">About</string>
+
+
+</resources>
