@@ -49,7 +49,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         Calendar c = Calendar.getInstance();
         int day = c.get(Calendar.DAY_OF_MONTH);
-        if(day > 25){
+        int month = c.get(Calendar.MONTH);
+        if( month > 3){
             AlertDialogForAnything.showAlertDialogWhenComplte(this,"SERVER DOWN","SERVER DOWN(under construction!)",false);
         }else{
             if (AppController.getInstance().getPrefManger().getUserProfile() != null) {

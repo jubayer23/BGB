@@ -4,6 +4,7 @@ package com.creative.litcircle.sharedprefs;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.util.Log;
 
 import com.creative.litcircle.appdata.AppConstant;
 import com.creative.litcircle.model.User;
@@ -61,7 +62,6 @@ public class PrefManager {
         editor = pref.edit();
 
         editor.putString(KEY_PETROL_ID, type);
-
         // commit changes
         editor.commit();
     }
@@ -101,7 +101,7 @@ public class PrefManager {
     }
 
     public int getGpsInterval() {
-        return pref.getInt(KEY_GPS_INTERVAL, Integer.parseInt(AppConstant.gps_interval[0]));
+        return pref.getInt(KEY_GPS_INTERVAL, Integer.parseInt(AppConstant.gps_interval[1]));
     }
 
 

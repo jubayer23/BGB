@@ -40,8 +40,6 @@ public class GpsService extends Service {
 
     private static long lastUpdateForGpsInterval = 0;
 
-    public static GPSTracker gpsTracker;
-
     private static Location previousLocation = null;
 
 
@@ -64,7 +62,8 @@ public class GpsService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
 
-        gpsTracker = new GPSTracker(this);
+       stopService(new Intent(_context, GPSTracker.class));
+       startService(new Intent(_context, GPSTracker.class));
 
         doInBackGround();
 
@@ -94,24 +93,32 @@ public class GpsService extends Service {
                             //Log.d("DEBUG", "user enable");
 
                             //Log.d("DEBUG", "user connextion ok");
-                            if (gpsTracker.canGetLocation() &&
+                            if (GPSTracker.isGPSEnabled &&
                                     ((curTime - lastUpdateForGpsInterval) >= AppController.getInstance().getPrefManger()
                                             .getGpsInterval() * 1000)) {
 
-                                //  Log.d("DEBUG", "user gps ok");
+
                                 lastUpdateForGpsInterval = curTime;
 
-                                Location locaion = gpsTracker.getLocationObject();
+                                Location locaion = GPSTracker.location;
+
+                                if(locaion == null)return;
 
                                 double loc_lat = (double) Math.round(locaion.getLatitude() * 100000d) / 100000d;
                                 double loc_lng = (double) Math.round(locaion.getLongitude() * 100000d) / 100000d;
                                 locaion.setLatitude(loc_lat);
                                 locaion.setLongitude(loc_lng);
 
+                                Log.d("DEBUG_lat_1",String.valueOf(loc_lat));
+                                Log.d("DEBUG_lng_1",String.valueOf(loc_lng));
+
 
                                 if (isBetterLocation(locaion, previousLocation)) {
                                     String user_lat = String.valueOf(locaion.getLatitude());
                                     String user_lang = String.valueOf(locaion.getLongitude());
+
+                                    Log.d("DEBUG_lat_2",user_lat);
+                                    Log.d("DEBUG_lng_2",user_lang);
 
                                     hitUrlForGps(Url.URL_SOLDIER_LOCATION, AppController.getInstance().getPrefManger().getUserProfile().getId(),
                                             user_lat, user_lang);
@@ -149,19 +156,8 @@ public class GpsService extends Service {
                     @Override
                     public void onResponse(String response) {
 
-                        response = response.replaceAll("\\s+", "");
+                        response.replaceAll("\\s+", "");
 
-                        Log.d("DEBUG", response.trim());
-
-                        try {
-                            JSONObject jsonObject = new JSONObject(response);
-                            String result = jsonObject.getString("result");
-                            if (result.equals("1") && AppController.getInstance().getPrefManger().getPetrolId().isEmpty()) {
-                                AppController.getInstance().getPrefManger().setPetrolId(jsonObject.getString("patrolId"));
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
 
                     }
                 }, new Response.ErrorListener() {
@@ -178,7 +174,6 @@ public class GpsService extends Service {
                 params.put("id", id);
                 params.put("latitude", lat);
                 params.put("longitude", lng);
-                Log.d("DEBUG_LOC", lat + " " + lng);
                 if (!AppController.getInstance().getPrefManger().getPetrolId().isEmpty())
                     params.put("patrolId", AppController.getInstance().getPrefManger().getPetrolId());
                 params.put("authUsername", AppController.getInstance().getPrefManger().getUserProfile().getUser_id());
@@ -207,6 +202,7 @@ public class GpsService extends Service {
         else {
             if ((currentLocation.getLatitude() == previousLocation.getLatitude()) && (currentLocation.getLongitude()
                     == previousLocation.getLongitude())) {
+
                 return false;
             } else {
                 double distance = 0;
@@ -229,7 +225,7 @@ public class GpsService extends Service {
 
         mThread.interrupt();
 
-        gpsTracker.stopUsingGPS();
+        stopService(new Intent(_context, GPSTracker.class));
 
         AppController.getInstance().getPrefManger().setPetrolId("");
 

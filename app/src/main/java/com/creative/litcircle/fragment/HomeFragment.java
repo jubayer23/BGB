@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +25,8 @@ import com.creative.litcircle.appdata.AppController;
 import com.creative.litcircle.appdata.Url;
 import com.creative.litcircle.service.GpsService;
 import com.creative.litcircle.utils.ConnectionDetector;
+import com.creative.litcircle.utils.GPSTracker;
+import com.creative.litcircle.utils.LastLocationOnly;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -80,15 +83,17 @@ public class HomeFragment extends Fragment {
 
                 if (btn.getText().toString().equalsIgnoreCase(TAG_BTN_START)) {
 
-                    //RESTART SERVICE
-                    getActivity().stopService(new Intent(getActivity(), GpsService.class));
-                    getActivity().startService(new Intent(getActivity(), GpsService.class));
 
-                    btn.setText(TAG_BTN_STOP);
-                    btn.setBackgroundColor(getActivity().getResources().getColor(R.color.red));
+                    LastLocationOnly lastLocationOnly = new LastLocationOnly(getActivity());
+                    double loc_lat = (double) Math.round(lastLocationOnly.getLatitude() * 100000d) / 100000d;
+                    double loc_lng = (double) Math.round(lastLocationOnly.getLongitude() * 100000d) / 100000d;
 
-                    btn_new_pillar_entry.setVisibility(View.VISIBLE);
+                    String user_lat = String.valueOf(loc_lat);
+                    String user_lang = String.valueOf(loc_lng);
 
+
+                   hitUrlForStartGps(Url.URL_SOLDIER_LOCATION, AppController.getInstance().getPrefManger().getUserProfile().getId(),
+                           user_lat, user_lang,btn);
 
                 } else {
 
@@ -96,15 +101,18 @@ public class HomeFragment extends Fragment {
 
                     alertDialog.setTitle("Alert!!");
 
-                    alertDialog.setMessage("Are you sure to stop petroling.");
+                    alertDialog.setMessage("Are you sure to stop patrolling.");
 
                     alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
 
-                            //STOP SERVICE
-                            String user_lat = String.valueOf(GpsService.gpsTracker.getLatitude());
-                            String user_lang = String.valueOf(GpsService.gpsTracker.getLongitude());
 
+                            LastLocationOnly lastLocationOnly = new LastLocationOnly(getActivity());
+                            double loc_lat = (double) Math.round(lastLocationOnly.getLatitude() * 100000d) / 100000d;
+                            double loc_lng = (double) Math.round(lastLocationOnly.getLongitude() * 100000d) / 100000d;
+                            //STOP SERVICE
+                            String user_lat = String.valueOf(loc_lat);
+                            String user_lang = String.valueOf(loc_lng);
 
                             hitUrlForStopGps(Url.URL_SOLDIER_LOCATION, AppController.getInstance().getPrefManger().getUserProfile().getId(),
                                     user_lat, user_lang,btn);
@@ -182,6 +190,70 @@ public class HomeFragment extends Fragment {
     }
 
 
+    private void hitUrlForStartGps(String url, final String id, final String lat, final String lng, final Button btn) {
+        // TODO Auto-generated method stub
+
+        showOrHideProgressBar();
+
+        final StringRequest req = new StringRequest(Request.Method.POST, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+
+                        showOrHideProgressBar();
+                        response=response.replaceAll("\\s+","");
+
+                        try {
+                            JSONObject jsonObject = new JSONObject(response);
+                            String result = jsonObject.getString("result");
+                            if (result.equals("1") && AppController.getInstance().getPrefManger().getPetrolId().isEmpty()) {
+
+                                AppController.getInstance().getPrefManger().setPetrolId(jsonObject.getString("patrolId"));
+
+                                //RESTART SERVICE
+                                getActivity().stopService(new Intent(getActivity(), GpsService.class));
+                                getActivity().startService(new Intent(getActivity(), GpsService.class));
+
+                                btn.setText(TAG_BTN_STOP);
+                                btn.setBackgroundColor(getActivity().getResources().getColor(R.color.red));
+
+                                btn_new_pillar_entry.setVisibility(View.VISIBLE);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+                showOrHideProgressBar();
+
+               // Log.d("DEBUG",String.valueOf(error));
+
+
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() {
+                //userId=XXX&routeId=XXX&selected=XXX
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("id", id);
+                params.put("latitude", lat);
+                params.put("longitude", lng);
+                params.put("authUsername",AppController.getInstance().getPrefManger().getUserProfile().getUser_id());
+                return params;
+            }
+        };
+
+        req.setRetryPolicy(new DefaultRetryPolicy(30000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        // TODO Auto-generated method stub
+        AppController.getInstance().addToRequestQueue(req);
+    }
+
+
     private void hitUrlForStopGps(String url, final String id, final String lat, final String lng, final Button btn) {
         // TODO Auto-generated method stub
 
@@ -193,7 +265,7 @@ public class HomeFragment extends Fragment {
                     public void onResponse(String response) {
 
                         showOrHideProgressBar();
-
+                        response=response.replaceAll("\\s+","");
                         try {
                             JSONObject jsonObject = new JSONObject(response);
                             String result = jsonObject.getString("result");
@@ -204,6 +276,8 @@ public class HomeFragment extends Fragment {
                                 btn.setBackgroundColor(getActivity().getResources().getColor(R.color.green));
 
                                 btn_new_pillar_entry.setVisibility(View.GONE);
+
+                                AppController.getInstance().getPrefManger().setPetrolId("");
                             }else{
                                 AlertDialogForAnything.showAlertDialogWhenComplte(getActivity(),"Alert","There is something wrong when stop patrolling",false);
                             }
@@ -217,7 +291,6 @@ public class HomeFragment extends Fragment {
             public void onErrorResponse(VolleyError error) {
 
                 showOrHideProgressBar();
-
 
             }
         }) {

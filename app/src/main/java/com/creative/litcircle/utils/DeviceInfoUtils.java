@@ -136,6 +136,10 @@ public class DeviceInfoUtils {
             mp.requestPermissionForPhoneState();
             return_value =  false;
         }
+        if (!mp.checkPermissionForWakeLock()) {
+            mp.requestPermissionForWakeLock();
+            return_value =  false;
+        }
 
         return return_value;
     }

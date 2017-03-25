@@ -326,10 +326,17 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == CAMERA_REQUEST) {
 
-                CropImage.activity(fileUri)
-                        .setGuidelines(CropImageView.Guidelines.ON)
-                        .setMultiTouchEnabled(true)
-                        .start(this);
+
+                try{
+                    CropImage.activity(fileUri)
+                            .setGuidelines(CropImageView.Guidelines.ON)
+                            .setMultiTouchEnabled(true)
+                            .start(this);
+                }catch (Exception e){
+                    AlertDialogForAnything.showAlertDialogWhenComplte(this,"ERROR","Crop Functionality does not work on your phone!",false);
+                }
+
+
 
             } else if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
                 CropImage.ActivityResult result = CropImage.getActivityResult(data);

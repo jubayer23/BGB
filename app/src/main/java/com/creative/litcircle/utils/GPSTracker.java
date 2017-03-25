@@ -13,17 +13,19 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.widget.Toast;
 
 public class GPSTracker extends Service implements LocationListener {
 
-    private final Context mContext;
+    private  Context mContext;
 
     // flag for GPS status
-    boolean isGPSEnabled = false;
+    public static boolean isGPSEnabled = false;
 
     // flag for network status
     boolean isNetworkEnabled = false;
@@ -31,7 +33,7 @@ public class GPSTracker extends Service implements LocationListener {
     // flag for GPS status
     boolean canGetLocation = false;
 
-    private Location location = null; // location
+    public static Location location = null; // location
     private double latitude; // latitude
     private double longitude; // longitude
 
@@ -48,9 +50,21 @@ public class GPSTracker extends Service implements LocationListener {
 
     public Location previousBestLocation = null;
 
-    public GPSTracker(Context context) {
-        this.mContext = context;
+
+    @Override
+    public void onCreate() {
+        // TODO Auto-generated method stub
+        super.onCreate();
+        this.mContext = this;
+
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+
         getLocation();
+
+        return START_STICKY;
     }
 
     public Location getLocation() {
@@ -86,11 +100,6 @@ public class GPSTracker extends Service implements LocationListener {
                     if (locationManager != null) {
                         location = locationManager
                                 .getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                        if (location != null) {
-                            latitude = location.getLatitude();
-                            longitude = location.getLongitude();
-                        }
-
                     }
                 }
 
@@ -100,15 +109,11 @@ public class GPSTracker extends Service implements LocationListener {
                                 LocationManager.NETWORK_PROVIDER,
                                 MIN_TIME_BW_UPDATES,
                                 MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-                        Log.d("Network", "Network Enabled");
                         if (locationManager != null) {
                             location = locationManager
                                     .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                            if (location != null) {
-                                latitude = location.getLatitude();
-                                longitude = location.getLongitude();
-                            }
                         }
+                        Log.d("Network", "Network Enabled");
                     }
                 }
 
@@ -126,18 +131,12 @@ public class GPSTracker extends Service implements LocationListener {
      * app
      */
     public void stopUsingGPS() {
-        if (locationManager != null) {
-            locationManager.removeUpdates(GPSTracker.this);
-        }
+
     }
 
     /**
      * Function to get latitude
      */
-    public Location getLocationObject() {
-            return location;
-        // return latitude
-    }
 
 
     /**
@@ -173,41 +172,6 @@ public class GPSTracker extends Service implements LocationListener {
         return this.canGetLocation;
     }
 
-    /**
-     * Function to show settings alert dialog On pressing Settings button will
-     * lauch Settings Options
-     */
-    public void showSettingsAlert() {
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(mContext);
-
-        // Setting Dialog Title
-        alertDialog.setTitle("GPS  settings");
-
-        // Setting Dialog Message
-        alertDialog
-                .setMessage("GPS is not enabled. Do you want to go to settings menu?");
-
-        // On pressing Settings button
-        alertDialog.setPositiveButton("Settings",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        Intent intent = new Intent(
-                                Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                        mContext.startActivity(intent);
-                    }
-                });
-
-        // on pressing cancel button
-        alertDialog.setNegativeButton("Cancel",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                });
-
-        // Showing Alert Message
-        alertDialog.show();
-    }
 
     @Override
     public void onLocationChanged(Location location) {
@@ -242,6 +206,7 @@ public class GPSTracker extends Service implements LocationListener {
 
 
     protected boolean isBetterLocation(Location location, Location currentBestLocation) {
+
         if (currentBestLocation == null) {
             // A new location is always better than no location
             return true;
@@ -291,5 +256,17 @@ public class GPSTracker extends Service implements LocationListener {
             return provider2 == null;
         }
         return provider1.equals(provider2);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions((Activity) mContext, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 50);
+            return;
+        }
+        if (locationManager != null) {
+            locationManager.removeUpdates(GPSTracker.this);
+        }
     }
 }

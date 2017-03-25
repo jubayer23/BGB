@@ -9,6 +9,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,11 +21,14 @@ import android.widget.Toast;
 import com.creative.litcircle.alertbanner.AlertDialogForAnything;
 import com.creative.litcircle.appdata.AppConstant;
 import com.creative.litcircle.appdata.AppController;
+import com.creative.litcircle.appdata.Url;
 import com.creative.litcircle.drawer.Drawer_list_adapter;
 import com.creative.litcircle.fragment.HomeFragment;
 import com.creative.litcircle.userview.AboutActivity;
 import com.creative.litcircle.utils.ConnectionDetector;
 import com.creative.litcircle.utils.DeviceInfoUtils;
+import com.creative.litcircle.utils.LastLocationOnly;
+import com.creative.litcircle.utils.MarshMallowPermission;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -66,14 +70,20 @@ public class HomeActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             getSupportFragmentManager()
                     .beginTransaction()
-                    .add(R.id.content_layout, new HomeFragment(),TAG_FRAGMENT)
+                    .add(R.id.content_layout, new HomeFragment(), TAG_FRAGMENT)
                     .commit();
         }
 
+
+
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         DeviceInfoUtils.checkInternetConnectionAndGps(this);
-
-
-
+        DeviceInfoUtils.checkMarshMallowPermission(HomeActivity.this);
     }
 
     private void init() {
@@ -87,8 +97,6 @@ public class HomeActivity extends AppCompatActivity {
         makeDrawer();
 
     }
-
-
 
 
     public void makeDrawer() {
@@ -166,7 +174,7 @@ public class HomeActivity extends AppCompatActivity {
                 if (listDataHeader.get(i).contains(DRAWER_LIST_NEWENTRY)) {
                     //Intent intent = new Intent(MainActivity.this, SettingActivity.class);
                     //startActivity(intent);
-                   // MainFragment fragment = (MainFragment) getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT);
+                    // MainFragment fragment = (MainFragment) getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT);
                     //fragment.devices();
                     if (!cd.isConnectingToInternet()) {
                         //Internet Connection is not present
@@ -189,7 +197,7 @@ public class HomeActivity extends AppCompatActivity {
                         }
                     });
 
-                    alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener(){
+                    alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.cancel();
 
@@ -205,13 +213,44 @@ public class HomeActivity extends AppCompatActivity {
                 if (listDataHeader.get(i).contains(DRAWER_LIST_SIGNOUT)) {
                     //Intent intent = new Intent(MainActivity.this, SettingActivity.class);
                     //startActivity(intent);
-                   // MainFragment fragment = (MainFragment) getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT);
-                   // fragment.logout();
-                    AppController.getInstance().getPrefManger().setUserProfile("");
-                    startActivity(new Intent(HomeActivity.this,MainActivity.class));
-                    finish();
-                }
+                    // MainFragment fragment = (MainFragment) getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT);
+                    // fragment.logout();
 
+                    if (!AppController.getInstance().getPrefManger().getPetrolId().isEmpty()) {
+
+                        AlertDialogForAnything.showAlertDialogWhenComplte(HomeActivity.this, "Alert", "Patrolling is running. Please Stop It Before Singout!", false);
+                    } else {
+
+
+                        AlertDialog.Builder alertDialog = new AlertDialog.Builder(HomeActivity.this);
+
+                        alertDialog.setTitle("Alert!!");
+
+                        alertDialog.setMessage("Are you sure to Sign Out.");
+
+                        alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+
+                                AppController.getInstance().getPrefManger().setUserProfile("");
+                                startActivity(new Intent(HomeActivity.this, MainActivity.class));
+                                finish();
+
+                            }
+                        });
+
+                        alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+
+                            }
+                        });
+
+                        alertDialog.show();
+
+
+                    }
+
+                }
 
 
                 //Toast.makeText(getApplicationContext(), "" + listDataHeader.get(i), Toast.LENGTH_SHORT).show();
@@ -268,6 +307,21 @@ public class HomeActivity extends AppCompatActivity {
             }
 
         }
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == MarshMallowPermission.CAMERA_PERMISSION_REQUEST_CODE ||
+                requestCode == MarshMallowPermission.EXTERNAL_STORAGE_PERMISSION_REQUEST_CODE ||
+                requestCode == MarshMallowPermission.RECORD_PERMISSION_REQUEST_CODE ||
+                requestCode == MarshMallowPermission.PHONE_STATE_PERMISSION_REQUEST_CODE) {
+            // DeviceInfoUtils.checkMarshMallowPermission(this);
+
+            //Log.d("DEBUG","Its here");
+        }
+
 
     }
 

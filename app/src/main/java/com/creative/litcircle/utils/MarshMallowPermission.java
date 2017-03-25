@@ -15,10 +15,20 @@ public class MarshMallowPermission {
     public static final int EXTERNAL_STORAGE_PERMISSION_REQUEST_CODE = 2;
     public static final int CAMERA_PERMISSION_REQUEST_CODE = 3;
     public static final int PHONE_STATE_PERMISSION_REQUEST_CODE = 4;
+    public static final int WAKE_LOCK_PERMISSION_REQUEST_CODE = 5;
     Activity activity;
 
     public MarshMallowPermission(Activity activity) {
         this.activity = activity;
+    }
+
+    public boolean checkPermissionForWakeLock() {
+        int result = ContextCompat.checkSelfPermission(activity, Manifest.permission.WAKE_LOCK);
+        if (result == PackageManager.PERMISSION_GRANTED) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public boolean checkPermissionForPhoneState() {
@@ -55,6 +65,19 @@ public class MarshMallowPermission {
         } else {
             return false;
         }
+    }
+    public void requestPermissionForWakeLock() {
+        if (checkPermissionForPhoneState())
+            return;
+
+        if (ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.WAKE_LOCK)) {
+            //If the user has denied the permission previously your code will come to this block
+            //Here you can explain why you need this permission
+            //Explain here why you need this permission
+        }
+        //And finally ask for the permission
+        ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.WAKE_LOCK},
+                WAKE_LOCK_PERMISSION_REQUEST_CODE);
     }
 
     public void requestPermissionForPhoneState() {
