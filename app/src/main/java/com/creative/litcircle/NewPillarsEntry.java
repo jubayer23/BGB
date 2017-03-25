@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -46,7 +47,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class NewPillarsEntry extends AppCompatActivity implements View.OnClickListener,AdapterView.OnItemSelectedListener {
+public class NewPillarsEntry extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemSelectedListener {
 
     private static final String TAG = "UploadServiceDemo";
     public static final String KEY_FILE_PATH = "file_path";
@@ -63,7 +64,7 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
     private static final String TAG_SELECT_CONDITION = "Select Condition";
 
 
-    private Spinner sp_pillars_name,sp_sub_pillars_name, sp_pillars_condition;
+    private Spinner sp_pillars_name, sp_sub_pillars_name, sp_pillars_condition;
 
     private Button btn_take_pic, btn_submit;
 
@@ -71,7 +72,7 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
 
     private static final int CAMERA_REQUEST = 1888;
 
-    private List<String> main_pillar_names, list_pillars_condition,sub_pillar_names;
+    private List<String> main_pillar_names, list_pillars_condition, sub_pillar_names;
 
     private Uri fileUri;
 
@@ -83,12 +84,10 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
 
     private HashMap<String, List<String>> map_sub_pillar = new HashMap<>();
 
-   //private ArrayAdapter<String> dataAdapter_sub_pillars_name;
+    private ArrayAdapter<String> dataAdapter_sub_pillars_name;
 
 
-
-
-   // private List<Pillar> pillars;
+    // private List<Pillar> pillars;
 
     private Gson gson;
 
@@ -111,28 +110,27 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
 
         /********************************************************************************************/
         main_pillar_names.add(TAG_SELECT_MAIN_PILLAR);
-        Iterator it = map_sub_pillar.entrySet().iterator();
+
+        Map<String, List<String>> map = map_sub_pillar;
         int counter = 0;
-        while (it.hasNext()) {
-            Map.Entry pair = (Map.Entry)it.next();
-            if(counter++ > 37){
-                main_pillar_names.add(String.valueOf(pair.getKey()));
+        for (Map.Entry<String, List<String>> entry : map.entrySet())
+        {
+            if (counter++ > 37) {
+                main_pillar_names.add(String.valueOf(entry.getKey()));
             }
-            it.remove(); // avoids a ConcurrentModificationException
         }
         ArrayAdapter<String> dataAdapter_pillars_name = new ArrayAdapter<String>
                 (this, R.layout.spinner_item, main_pillar_names);
 
         sp_pillars_name.setAdapter(dataAdapter_pillars_name);
 
-
         /********************************************************************************************/
 
         sub_pillar_names.add(TAG_NO_MAIN_PILLAR_SELECTED);
-        ArrayAdapter<String> dataAdapter_sub_pillars_name = new ArrayAdapter<String>
+        dataAdapter_sub_pillars_name = new ArrayAdapter<String>
                 (this, R.layout.spinner_item, sub_pillar_names);
 
-        sp_sub_pillars_name.setAdapter(dataAdapter_pillars_name);
+        sp_sub_pillars_name.setAdapter(dataAdapter_sub_pillars_name);
 
         /********************************************************************************************/
         list_pillars_condition.add(TAG_SELECT_CONDITION);
@@ -155,7 +153,7 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
         progressDialog.setMessage("Loading...");
 
 
-       // pillars = new ArrayList<>();
+        // pillars = new ArrayList<>();
 
         main_pillar_names = new ArrayList<String>();
         sub_pillar_names = new ArrayList<String>();
@@ -165,6 +163,7 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
 
 
         sp_pillars_name = (Spinner) findViewById(R.id.sp_pillars_id);
+        sp_pillars_name.setOnItemSelectedListener(this);
         sp_sub_pillars_name = (Spinner) findViewById(R.id.sp_sub_pillars_id);
         sp_pillars_condition = (Spinner) findViewById(R.id.sp_pillars_condition);
 
@@ -193,7 +192,7 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
                             map_sub_pillar.clear();
                             main_pillar_names.clear();
 
-                           // pillars.clear();
+                            // pillars.clear();
 
                             JSONArray jsonArray = new JSONArray(response);
 
@@ -206,25 +205,27 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
                                 String lang = jsonObject.getString("longitude");
                                 String url = jsonObject.getString("url");
 
-                                Pillar pillar = new Pillar(id,name,lat,lang,url);
+                                Pillar pillar = new Pillar(id, name, lat, lang, url);
 
                                 //pillars.add(pillar);
 
                                 map_pillar_info.put(pillar.getName(), pillar);
 
-                                String main_sub[] = name.split("/",2);
+                                String main_sub[] = name.split("/", 2);
                                 //main_pillar_names.add(main_sub[0]);
 
                                 List<String> temp_list;
-                                if(map_sub_pillar.get(main_sub[0]) == null){
+                                if (map_sub_pillar.get(main_sub[0]) == null) {
                                     temp_list = new ArrayList<>();
-                                }else{
+                                } else {
                                     temp_list = map_sub_pillar.get(main_sub[0]);
                                 }
-                                if(main_sub.length>1){
-                                    temp_list.add(main_sub[1]);
+                                if (main_sub.length > 1) {
+                                    if (main_sub[1].length() > 0) {
+                                        temp_list.add(main_sub[1]);
+                                    }
                                 }
-                                map_sub_pillar.put(main_sub[0],temp_list);
+                                map_sub_pillar.put(main_sub[0], temp_list);
 
 
                             }
@@ -326,16 +327,16 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
                 public void onClick(DialogInterface dialog, int which) {
 
                     String pillar_name = main_pillar_name;
-                    if(!sub_pillar_name.equalsIgnoreCase(TAG_SELECT_SUB_PILLAR) && !sub_pillar_name.equalsIgnoreCase(TAG_NO_MAIN_PILLAR_SELECTED)
-                            && !sub_pillar_name.equalsIgnoreCase(TAG_NO_SUB_PILLAR_FOR_MAIN_PILLAR)){
+                    if (!sub_pillar_name.equalsIgnoreCase(TAG_SELECT_SUB_PILLAR) && !sub_pillar_name.equalsIgnoreCase(TAG_NO_MAIN_PILLAR_SELECTED)
+                            && !sub_pillar_name.equalsIgnoreCase(TAG_NO_SUB_PILLAR_FOR_MAIN_PILLAR)) {
 
-                        pillar_name = pillar_name + "/" +sub_pillar_name;
+                        pillar_name = pillar_name + "/" + sub_pillar_name;
                     }
 
                     Intent i = new Intent(NewPillarsEntry.this, UploadActivity.class);
-                    if(map_pillar_info.get(pillar_name).getLatitude().equalsIgnoreCase("null")){
+                    if (map_pillar_info.get(pillar_name).getLatitude().equalsIgnoreCase("null")) {
                         i.putExtra(KEY_UPLOAD_TYPE, AppConstant.pillar_entry_new);
-                    }else{
+                    } else {
                         i.putExtra(KEY_UPLOAD_TYPE, AppConstant.pillar_entry_update);
                     }
                     i.putExtra(KEY_FILE_PATH, fileUri.getPath());
@@ -348,7 +349,7 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
                 }
             });
 
-            alertDialog.setNegativeButton("NO", new DialogInterface.OnClickListener(){
+            alertDialog.setNegativeButton("NO", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
                     dialog.cancel();
 
@@ -356,7 +357,6 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
             });
 
             alertDialog.show();
-
 
 
         }
@@ -370,15 +370,14 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
             if (requestCode == CAMERA_REQUEST) {
 
 
-                try{
+                try {
                     CropImage.activity(fileUri)
                             .setGuidelines(CropImageView.Guidelines.ON)
                             .setMultiTouchEnabled(true)
                             .start(this);
-                }catch (Exception e){
-                    AlertDialogForAnything.showAlertDialogWhenComplte(this,"ERROR","Crop Functionality does not work on your phone!",false);
+                } catch (Exception e) {
+                    AlertDialogForAnything.showAlertDialogWhenComplte(this, "ERROR", "Crop Functionality does not work on your phone!", false);
                 }
-
 
 
             } else if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
@@ -443,9 +442,9 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
     @Override
     public void onBackPressed() {
         if (!isFreezeActivity) {
-            if(isAbleToBack){
+            if (isAbleToBack) {
                 super.onBackPressed();
-            }else{
+            } else {
                 AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
 
                 alertDialog.setTitle("Alert!!");
@@ -459,7 +458,7 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
                     }
                 });
 
-                alertDialog.setNegativeButton("NO", new DialogInterface.OnClickListener(){
+                alertDialog.setNegativeButton("NO", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.cancel();
 
@@ -486,32 +485,38 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
         return true;
     }
 
+
+    static int st_time = 0;
     @Override
-    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-        int id = view.getId();
+    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long id) {
 
-        if(id == R.id.sp_pillars_id){
 
-            showOrHideProgressBar();
 
-            sub_pillar_names.clear();
-            sub_pillar_names.add(TAG_SELECT_SUB_PILLAR);
-
-            String selected_main_pillar = main_pillar_names.get(i);
-
-            List<String> temp_sub_pillars = map_sub_pillar.get(selected_main_pillar);
-
-            if(!temp_sub_pillars.isEmpty()){
-                sub_pillar_names.addAll(temp_sub_pillars);
-            }else{
-                sub_pillar_names.add(TAG_NO_SUB_PILLAR_FOR_MAIN_PILLAR);
-            }
-
-            sp_sub_pillars_name.getAdapter().notify();
-
-            showOrHideProgressBar();
-
+        if(st_time == 0){
+            st_time++;
+            return;
         }
+
+
+        showOrHideProgressBar();
+
+        sub_pillar_names.clear();
+        sub_pillar_names.add(TAG_SELECT_SUB_PILLAR);
+
+        String selected_main_pillar = adapterView.getItemAtPosition(i).toString();
+
+        List<String> temp_sub_pillars = map_sub_pillar.get(selected_main_pillar);
+
+        if (!temp_sub_pillars.isEmpty()) {
+            sub_pillar_names.addAll(temp_sub_pillars);
+        } else {
+            sub_pillar_names.add(TAG_NO_SUB_PILLAR_FOR_MAIN_PILLAR);
+        }
+
+        dataAdapter_sub_pillars_name.notifyDataSetChanged();
+
+        showOrHideProgressBar();
+
 
     }
 

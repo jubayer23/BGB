@@ -55,8 +55,6 @@ public class AppController extends Application {
         this.scale = getResources().getDisplayMetrics().density;
         UploadService.NAMESPACE = BuildConfig.APPLICATION_ID;
 
-        hitUrlForCheckUpdate(Url.URL_CHECK_APP_UPDATE);
-
     }
 
     public static synchronized AppController getInstance() {
@@ -119,59 +117,6 @@ public class AppController extends Application {
         return pixels;
     }
 
-    private void hitUrlForCheckUpdate(String url) {
-        // TODO Auto-generated method stub
-        final ProgressDialog progressDialog = new ProgressDialog(this);
-        progressDialog.setIndeterminate(false);
-        progressDialog.setMessage("Login In...");
-        progressDialog.dismiss();
-
-        final StringRequest req = new StringRequest(com.android.volley.Request.Method.POST, url,
-                new com.android.volley.Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-
-                       // progressDialog.dismiss();
-
-                        try {
-                            JSONObject jsonObject = new JSONObject(response);
-                            int status = Integer.parseInt(jsonObject.getString("result"));
-
-                            if (status == 1) {
-
-                            } else {
-
-
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-
-
-                    }
-                }, new com.android.volley.Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-
-             //  progressDialog.dismiss();
-
-//                AlertDialogForAnything.showAlertDialogWhenComplte(getApplicationContext(),"yes","yes",false);
-            }
-        }) {
-            @Override
-            protected Map<String, String> getParams() {
-                //userId=XXX&routeId=XXX&selected=XXX
-                Map<String, String> params = new HashMap<String, String>();
-                //params.put("mobileNumber",mobileNumber);
-                return params;
-            }
-        };
-
-        req.setRetryPolicy(new DefaultRetryPolicy(30000,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-        // TODO Auto-generated method stub
-        addToRequestQueue(req);
-    }
 
 
 

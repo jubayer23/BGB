@@ -64,7 +64,7 @@ public class HomeFragment extends Fragment {
 
         if(!AppController.getInstance().getPrefManger().getPetrolId().isEmpty()){
             btn_start_petroling.setText(TAG_BTN_STOP);
-            btn_start_petroling.setBackgroundColor(getActivity().getResources().getColor(R.color.red));
+            btn_start_petroling.setBackgroundResource(R.drawable.btn_selector_stop_patrolling);
             btn_new_pillar_entry.setVisibility(View.VISIBLE);
         }
 
@@ -225,7 +225,7 @@ public class HomeFragment extends Fragment {
                                 getActivity().startService(new Intent(getActivity(), GpsService.class));
 
                                 btn.setText(TAG_BTN_STOP);
-                                btn.setBackgroundColor(getActivity().getResources().getColor(R.color.red));
+                                btn.setBackgroundResource(R.drawable.btn_selector_stop_patrolling);
 
                                 btn_new_pillar_entry.setVisibility(View.VISIBLE);
                             }
@@ -283,7 +283,7 @@ public class HomeFragment extends Fragment {
                                 getActivity().stopService(new Intent(getActivity(), GpsService.class));
 
                                 btn.setText(TAG_BTN_START);
-                                btn.setBackgroundColor(getActivity().getResources().getColor(R.color.green));
+                                btn.setBackgroundResource(R.drawable.btn_selector_start_patrolling);
 
                                 btn_new_pillar_entry.setVisibility(View.GONE);
 

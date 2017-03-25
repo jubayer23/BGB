@@ -32,6 +32,8 @@ public class PrefManager {
 
     private static final String KEY_LOGIN_TYPE = "login_type";
 
+    private static final String KEY_APP_VERSION = "app_version";
+
     private static final String KEY_USER = "user";
 
     private static final String KEY_GPS_INTERVAL = "gps_interval";
@@ -56,6 +58,19 @@ public class PrefManager {
 
     public String getLoginType() {
         return pref.getString(KEY_LOGIN_TYPE, "");
+    }
+
+    public void setAppVersion(String value) {
+        editor = pref.edit();
+
+        editor.putString(KEY_APP_VERSION, value);
+
+        // commit changes
+        editor.commit();
+    }
+
+    public String getAppVersion() {
+        return pref.getString(KEY_APP_VERSION, "0.1");
     }
 
     public void setPetrolId(String type) {

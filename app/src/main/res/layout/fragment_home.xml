@@ -11,7 +11,7 @@
         android:text="Start Patrolling"
         android:id="@+id/btn_startpetroling"
         android:textStyle="bold"
-        android:background="@color/green_2"
+        android:background="@drawable/btn_selector_start_patrolling"
         android:textColor="@color/white"
         android:textSize="30sp"
         android:layout_margin="20dp"/>

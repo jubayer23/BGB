@@ -42,6 +42,8 @@
 
     <color name="red">#e60b45</color>
 
+    <color name="red_2">#b40836</color>
+
     <!--for seekBar-->
     <color name="default_screen_bg">#f9f9f9</color>
     <color name="rounded_container_bg">#222222</color>

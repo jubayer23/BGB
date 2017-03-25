@@ -62,8 +62,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
 
-
-
+        hitUrlForCheckAppUpdate(Url.URL_CHECK_APP_UPDATE);
 
     }
 
@@ -202,27 +201,40 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         AppController.getInstance().addToRequestQueue(req);
     }
 
-    private void hitUrlForAppConfirmation(String url) {
+    private void hitUrlForCheckAppUpdate(String url) {
         // TODO Auto-generated method stub
         showOrHideProgressBar();
 
-        final StringRequest req = new StringRequest(com.android.volley.Request.Method.POST, url,
+        Log.d("DEBUG",url);
+
+        final StringRequest req = new StringRequest(com.android.volley.Request.Method.GET, url,
                 new com.android.volley.Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
+
+
+                        response = "{\"version\":\"1.0\",\"url\":\"\"}";
+
+                        Log.d("DEBUG",response);
 
                         showOrHideProgressBar();
 
                         try {
                             JSONObject jsonObject = new JSONObject(response);
-                            int status = Integer.parseInt(jsonObject.getString("result"));
+                            String version = jsonObject.getString("version");
 
-                            if (status == 0) {
-                                finish();
+                            if (!version.equalsIgnoreCase(AppController.getInstance().getPrefManger().getAppVersion())) {
+
+                                Log.d("DEBUG","its_here");
+                                    AlertDialogForAnything.showAlertDialogForceUpdateFromDropBox(MainActivity.this,
+                                            "App Update","Press Download To Download The Updated App","DOWNLOAD",
+                                            jsonObject.getString("url"));
                             }
 
                         } catch (JSONException e) {
                             e.printStackTrace();
+
+                            Log.d("DEBUG","error");
                         }
 
 
@@ -232,6 +244,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onErrorResponse(VolleyError error) {
 
                 showOrHideProgressBar();
+
+                Log.d("DEBUG","error");
+
 
             }
         });
