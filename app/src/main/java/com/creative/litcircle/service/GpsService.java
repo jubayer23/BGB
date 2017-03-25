@@ -109,16 +109,16 @@ public class GpsService extends Service {
                                 locaion.setLatitude(loc_lat);
                                 locaion.setLongitude(loc_lng);
 
-                                Log.d("DEBUG_lat_1",String.valueOf(loc_lat));
-                                Log.d("DEBUG_lng_1",String.valueOf(loc_lng));
+                                Log.d("DEBUG_IN_LAT_1",String.valueOf(loc_lat));
+                                Log.d("DEBUG_IN_LANG_1",String.valueOf(loc_lng));
 
 
                                 if (isBetterLocation(locaion, previousLocation)) {
                                     String user_lat = String.valueOf(locaion.getLatitude());
                                     String user_lang = String.valueOf(locaion.getLongitude());
 
-                                    Log.d("DEBUG_lat_2",user_lat);
-                                    Log.d("DEBUG_lng_2",user_lang);
+                                    Log.d("DEBUG_IN_LAT_2",user_lat);
+                                    Log.d("DEBUG_IN_LANG_2",user_lang);
 
                                     hitUrlForGps(Url.URL_SOLDIER_LOCATION, AppController.getInstance().getPrefManger().getUserProfile().getId(),
                                             user_lat, user_lang);

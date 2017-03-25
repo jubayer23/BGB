@@ -1,17 +1,31 @@
 package com.creative.litcircle.appdata;
 
 import android.app.Application;
+import android.app.ProgressDialog;
+import android.content.Intent;
 import android.text.TextUtils;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.creative.litcircle.BuildConfig;
+import com.creative.litcircle.HomeActivity;
+import com.creative.litcircle.alertbanner.AlertDialogForAnything;
+import com.creative.litcircle.model.User;
 import com.creative.litcircle.sharedprefs.PrefManager;
 import com.creative.litcircle.utils.LruBitmapCache;
 
 import net.gotev.uploadservice.UploadService;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class AppController extends Application {
@@ -40,6 +54,8 @@ public class AppController extends Application {
         pref = new PrefManager(this);
         this.scale = getResources().getDisplayMetrics().density;
         UploadService.NAMESPACE = BuildConfig.APPLICATION_ID;
+
+        hitUrlForCheckUpdate(Url.URL_CHECK_APP_UPDATE);
 
     }
 
@@ -103,7 +119,59 @@ public class AppController extends Application {
         return pixels;
     }
 
+    private void hitUrlForCheckUpdate(String url) {
+        // TODO Auto-generated method stub
+        final ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setIndeterminate(false);
+        progressDialog.setMessage("Login In...");
+        progressDialog.dismiss();
 
+        final StringRequest req = new StringRequest(com.android.volley.Request.Method.POST, url,
+                new com.android.volley.Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+
+                       // progressDialog.dismiss();
+
+                        try {
+                            JSONObject jsonObject = new JSONObject(response);
+                            int status = Integer.parseInt(jsonObject.getString("result"));
+
+                            if (status == 1) {
+
+                            } else {
+
+
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+
+                    }
+                }, new com.android.volley.Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+             //  progressDialog.dismiss();
+
+//                AlertDialogForAnything.showAlertDialogWhenComplte(getApplicationContext(),"yes","yes",false);
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() {
+                //userId=XXX&routeId=XXX&selected=XXX
+                Map<String, String> params = new HashMap<String, String>();
+                //params.put("mobileNumber",mobileNumber);
+                return params;
+            }
+        };
+
+        req.setRetryPolicy(new DefaultRetryPolicy(30000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        // TODO Auto-generated method stub
+        addToRequestQueue(req);
+    }
 
 
 

@@ -26,6 +26,7 @@ import com.creative.litcircle.appdata.Url;
 import com.creative.litcircle.service.GpsService;
 import com.creative.litcircle.utils.ConnectionDetector;
 import com.creative.litcircle.utils.GPSTracker;
+import com.creative.litcircle.utils.GpsEnableTool;
 import com.creative.litcircle.utils.LastLocationOnly;
 
 import org.json.JSONException;
@@ -81,15 +82,23 @@ public class HomeFragment extends Fragment {
                     return;
                 }
 
+                final LastLocationOnly lastLocationOnly = new LastLocationOnly(getActivity());
+
+                if(!lastLocationOnly.canGetLocation()){
+                    GpsEnableTool gpsEnableTool =  new GpsEnableTool(getActivity());
+                    gpsEnableTool.enableGPs();
+                    return;
+                }
+
                 if (btn.getText().toString().equalsIgnoreCase(TAG_BTN_START)) {
 
-
-                    LastLocationOnly lastLocationOnly = new LastLocationOnly(getActivity());
                     double loc_lat = (double) Math.round(lastLocationOnly.getLatitude() * 100000d) / 100000d;
                     double loc_lng = (double) Math.round(lastLocationOnly.getLongitude() * 100000d) / 100000d;
 
                     String user_lat = String.valueOf(loc_lat);
                     String user_lang = String.valueOf(loc_lng);
+                    Log.d("DEBUG_START_LAT",user_lat);
+                    Log.d("DEBUG_START_LANG",user_lang);
 
 
                    hitUrlForStartGps(Url.URL_SOLDIER_LOCATION, AppController.getInstance().getPrefManger().getUserProfile().getId(),
@@ -107,12 +116,13 @@ public class HomeFragment extends Fragment {
                         public void onClick(DialogInterface dialog, int which) {
 
 
-                            LastLocationOnly lastLocationOnly = new LastLocationOnly(getActivity());
                             double loc_lat = (double) Math.round(lastLocationOnly.getLatitude() * 100000d) / 100000d;
                             double loc_lng = (double) Math.round(lastLocationOnly.getLongitude() * 100000d) / 100000d;
                             //STOP SERVICE
                             String user_lat = String.valueOf(loc_lat);
                             String user_lang = String.valueOf(loc_lng);
+                            Log.d("DEBUG_END_LAT",user_lat);
+                            Log.d("DEBUG_END_LANG",user_lang);
 
                             hitUrlForStopGps(Url.URL_SOLDIER_LOCATION, AppController.getInstance().getPrefManger().getUserProfile().getId(),
                                     user_lat, user_lang,btn);

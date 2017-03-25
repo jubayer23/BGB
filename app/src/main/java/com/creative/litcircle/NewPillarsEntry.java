@@ -13,6 +13,7 @@ import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -41,10 +42,11 @@ import org.json.JSONObject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class NewPillarsEntry extends AppCompatActivity implements View.OnClickListener {
+public class NewPillarsEntry extends AppCompatActivity implements View.OnClickListener,AdapterView.OnItemSelectedListener {
 
     private static final String TAG = "UploadServiceDemo";
     public static final String KEY_FILE_PATH = "file_path";
@@ -54,11 +56,14 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
     public static final String KEY_PILLAR_ID = "pillar_name";
     public static final String KEY_UPLOAD_TYPE = "upload_type";
     public static final int UPLOAD_REQUEST = 3333;
-    private static final String TAG_SELECT_PILLAR = "Select Pillar";
+    private static final String TAG_SELECT_MAIN_PILLAR = "Select Main Pillar";
+    private static final String TAG_SELECT_SUB_PILLAR = "Select Sub Pillar";
+    private static final String TAG_NO_MAIN_PILLAR_SELECTED = "No Main Pillar Selected";
+    private static final String TAG_NO_SUB_PILLAR_FOR_MAIN_PILLAR = "No Sub Pillar For This Main Pillar";
     private static final String TAG_SELECT_CONDITION = "Select Condition";
 
 
-    private Spinner sp_pillars_name, sp_pillars_condition;
+    private Spinner sp_pillars_name,sp_sub_pillars_name, sp_pillars_condition;
 
     private Button btn_take_pic, btn_submit;
 
@@ -66,7 +71,7 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
 
     private static final int CAMERA_REQUEST = 1888;
 
-    private List<String> list_pillars_name, list_pillars_condition;
+    private List<String> main_pillar_names, list_pillars_condition,sub_pillar_names;
 
     private Uri fileUri;
 
@@ -76,8 +81,14 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
 
     private HashMap<String, Pillar> map_pillar_info = new HashMap<>();
 
+    private HashMap<String, List<String>> map_sub_pillar = new HashMap<>();
 
-    private List<Pillar> pillars;
+   //private ArrayAdapter<String> dataAdapter_sub_pillars_name;
+
+
+
+
+   // private List<Pillar> pillars;
 
     private Gson gson;
 
@@ -99,23 +110,29 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
 
 
         /********************************************************************************************/
-        list_pillars_name.add(TAG_SELECT_PILLAR);
-
-        for(int i=0;i<pillars.size();i++){
-            try {
-                int id = Integer.parseInt(pillars.get(i).getId().trim());
-                if(id > 37){
-                    list_pillars_name.add(pillars.get(i).getName());
-                }
-            }catch (Exception e){
-
+        main_pillar_names.add(TAG_SELECT_MAIN_PILLAR);
+        Iterator it = map_sub_pillar.entrySet().iterator();
+        int counter = 0;
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+            if(counter++ > 37){
+                main_pillar_names.add(String.valueOf(pair.getKey()));
             }
-
+            it.remove(); // avoids a ConcurrentModificationException
         }
         ArrayAdapter<String> dataAdapter_pillars_name = new ArrayAdapter<String>
-                (this, R.layout.spinner_item, list_pillars_name);
+                (this, R.layout.spinner_item, main_pillar_names);
 
         sp_pillars_name.setAdapter(dataAdapter_pillars_name);
+
+
+        /********************************************************************************************/
+
+        sub_pillar_names.add(TAG_NO_MAIN_PILLAR_SELECTED);
+        ArrayAdapter<String> dataAdapter_sub_pillars_name = new ArrayAdapter<String>
+                (this, R.layout.spinner_item, sub_pillar_names);
+
+        sp_sub_pillars_name.setAdapter(dataAdapter_pillars_name);
 
         /********************************************************************************************/
         list_pillars_condition.add(TAG_SELECT_CONDITION);
@@ -138,16 +155,17 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
         progressDialog.setMessage("Loading...");
 
 
-        pillars = new ArrayList<>();
+       // pillars = new ArrayList<>();
 
-        list_pillars_name = new ArrayList<String>();
-
+        main_pillar_names = new ArrayList<String>();
+        sub_pillar_names = new ArrayList<String>();
         list_pillars_condition = new ArrayList<String>();
 
         gson = new Gson();
 
 
         sp_pillars_name = (Spinner) findViewById(R.id.sp_pillars_id);
+        sp_sub_pillars_name = (Spinner) findViewById(R.id.sp_sub_pillars_id);
         sp_pillars_condition = (Spinner) findViewById(R.id.sp_pillars_condition);
 
         btn_take_pic = (Button) findViewById(R.id.btn_take_pic);
@@ -172,8 +190,10 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
 
                         try {
                             map_pillar_info.clear();
+                            map_sub_pillar.clear();
+                            main_pillar_names.clear();
 
-                            pillars.clear();
+                           // pillars.clear();
 
                             JSONArray jsonArray = new JSONArray(response);
 
@@ -188,9 +208,23 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
 
                                 Pillar pillar = new Pillar(id,name,lat,lang,url);
 
-                                pillars.add(pillar);
+                                //pillars.add(pillar);
 
                                 map_pillar_info.put(pillar.getName(), pillar);
+
+                                String main_sub[] = name.split("/",2);
+                                //main_pillar_names.add(main_sub[0]);
+
+                                List<String> temp_list;
+                                if(map_sub_pillar.get(main_sub[0]) == null){
+                                    temp_list = new ArrayList<>();
+                                }else{
+                                    temp_list = map_sub_pillar.get(main_sub[0]);
+                                }
+                                if(main_sub.length>1){
+                                    temp_list.add(main_sub[1]);
+                                }
+                                map_sub_pillar.put(main_sub[0],temp_list);
 
 
                             }
@@ -259,15 +293,17 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
 
         if (id == R.id.btn_submit) {
             final LastLocationOnly lastLocationOnly = new LastLocationOnly(this);
-            final String pillar_name = sp_pillars_name.getSelectedItem().toString();
+
+            final String main_pillar_name = sp_pillars_name.getSelectedItem().toString();
+            final String sub_pillar_name = sp_sub_pillars_name.getSelectedItem().toString();
             final String pillar_condition = sp_pillars_condition.getSelectedItem().toString();
 
             if (!lastLocationOnly.canGetLocation()) {
                 AlertDialogForAnything.showAlertDialogWhenComplte(this, "Location Alert", "Please enable your gps!", false);
                 return;
             }
-            if (pillar_name.equalsIgnoreCase(TAG_SELECT_PILLAR)) {
-                AlertDialogForAnything.showAlertDialogWhenComplte(this, "Alert", "Please select a pillar name!", false);
+            if (main_pillar_name.equalsIgnoreCase(TAG_SELECT_MAIN_PILLAR)) {
+                AlertDialogForAnything.showAlertDialogWhenComplte(this, "Alert", "Please select a Main pillar name!", false);
                 return;
             }
             if (pillar_condition.equalsIgnoreCase(TAG_SELECT_CONDITION)) {
@@ -288,6 +324,13 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
 
             alertDialog.setPositiveButton("YES", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
+
+                    String pillar_name = main_pillar_name;
+                    if(!sub_pillar_name.equalsIgnoreCase(TAG_SELECT_SUB_PILLAR) && !sub_pillar_name.equalsIgnoreCase(TAG_NO_MAIN_PILLAR_SELECTED)
+                            && !sub_pillar_name.equalsIgnoreCase(TAG_NO_SUB_PILLAR_FOR_MAIN_PILLAR)){
+
+                        pillar_name = pillar_name + "/" +sub_pillar_name;
+                    }
 
                     Intent i = new Intent(NewPillarsEntry.this, UploadActivity.class);
                     if(map_pillar_info.get(pillar_name).getLatitude().equalsIgnoreCase("null")){
@@ -441,5 +484,39 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
         }
 
         return true;
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+        int id = view.getId();
+
+        if(id == R.id.sp_pillars_id){
+
+            showOrHideProgressBar();
+
+            sub_pillar_names.clear();
+            sub_pillar_names.add(TAG_SELECT_SUB_PILLAR);
+
+            String selected_main_pillar = main_pillar_names.get(i);
+
+            List<String> temp_sub_pillars = map_sub_pillar.get(selected_main_pillar);
+
+            if(!temp_sub_pillars.isEmpty()){
+                sub_pillar_names.addAll(temp_sub_pillars);
+            }else{
+                sub_pillar_names.add(TAG_NO_SUB_PILLAR_FOR_MAIN_PILLAR);
+            }
+
+            sp_sub_pillars_name.getAdapter().notify();
+
+            showOrHideProgressBar();
+
+        }
+
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> adapterView) {
+
     }
 }

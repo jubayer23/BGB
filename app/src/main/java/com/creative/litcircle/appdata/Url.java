@@ -20,4 +20,6 @@ public class Url {
     public static final String URL_REPORT_TO_BGB =  BaseUrl + "reportToBGB";
 
     public static final String URL_APP_ACTIVE =  "http://besafebd.com/server/checkApp.php";
+
+    public static final String URL_CHECK_APP_UPDATE =  BaseUrl + "checkAppUpdate";
 }

@@ -267,6 +267,8 @@ public class GPSTracker extends Service implements LocationListener {
         }
         if (locationManager != null) {
             locationManager.removeUpdates(GPSTracker.this);
+            location = null;
+            locationManager = null;
         }
     }
 }

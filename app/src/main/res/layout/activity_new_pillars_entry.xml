@@ -46,6 +46,38 @@
         </RelativeLayout>
 
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Sub Pillar Id/Name"
+            android:layout_marginTop="25dp"
+            android:textColor="@color/white"
+            android:textSize="16sp" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/btn_common_tranparent">
+
+            <Spinner
+                android:id="@+id/sp_sub_pillars_id"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:popupBackground="@color/white"
+                android:textSize="16sp" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:padding="5dp"
+                android:src="@drawable/spinner_arrow" />
+        </RelativeLayout>
+
+
         <ImageView
             android:id="@+id/img_from_camera"
             android:layout_width="150dp"
