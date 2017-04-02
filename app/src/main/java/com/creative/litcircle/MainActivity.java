@@ -1,7 +1,10 @@
 package com.creative.litcircle;
 
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.TelephonyManager;
@@ -9,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.android.volley.DefaultRetryPolicy;
@@ -19,6 +23,7 @@ import com.creative.litcircle.appdata.AppConstant;
 import com.creative.litcircle.appdata.AppController;
 import com.creative.litcircle.appdata.Url;
 import com.creative.litcircle.model.User;
+import com.creative.litcircle.userview.SettingActivity;
 import com.creative.litcircle.utils.ConnectionDetector;
 import com.creative.litcircle.utils.DeviceInfoUtils;
 import com.creative.litcircle.utils.GpsEnableTool;
@@ -42,6 +47,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private EditText ed_userid, ed_password;
     private Button btn_submit, btn_skip;
 
+    private ImageView btn_setting;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,19 +57,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Calendar c = Calendar.getInstance();
         int day = c.get(Calendar.DAY_OF_MONTH);
         int month = c.get(Calendar.MONTH);
-        if( month > 3){
-            AlertDialogForAnything.showAlertDialogWhenComplte(this,"SERVER DOWN","SERVER DOWN(under construction!)",false);
-        }else{
-            if (AppController.getInstance().getPrefManger().getUserProfile() != null) {
-                Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-                startActivity(intent);
-                finish();
-            } else {
-                init();
-            }
-        }
+        if (month > 3) {
+            AlertDialogForAnything.showAlertDialogWhenComplte(this, "SERVER DOWN", "SERVER DOWN(under construction!)", false);
+        } else {
 
-        hitUrlForCheckAppUpdate(Url.URL_CHECK_APP_UPDATE);
+            init();
+
+            PackageInfo pInfo = null;
+            try {
+                pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+            }
+            String version = pInfo.versionName;
+
+
+            if(!version.equalsIgnoreCase(AppController.getInstance().getPrefManger().getAppVersion())
+                    && !AppController.getInstance().getPrefManger().getAppUpdateWaitingStage()){
+
+
+                AlertDialogForAnything.showAlertDialogForceUpdateFromDropBox(MainActivity.this,
+                        "App Update","Press Download To Download The Updated App","DOWNLOAD",
+                        AppConstant.APP_UPDATE_URL);
+            }
+
+        }
 
     }
 
@@ -90,6 +109,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btn_skip = (Button) findViewById(R.id.btn_skip);
         btn_skip.setOnClickListener(this);
 
+        btn_setting = (ImageView) findViewById(R.id.btn_usersetting);
+        btn_setting.setOnClickListener(this);
+
         progressDialog = new ProgressDialog(this);
         progressDialog.setIndeterminate(false);
         progressDialog.setMessage("Login In...");
@@ -103,13 +125,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         int id = view.getId();
 
+        if(AppController.getInstance().getPrefManger().getAppUpdateWaitingStage()){
+
+            AlertDialogForAnything.showAlertDialogWhenComplte(MainActivity.this,"Alert","Your New App Downloaded. Please Install That one",false);
+            return;
+        }
+
+        if (id == R.id.btn_usersetting) {
+
+            showDialogForSetting();
+
+
+        }
+
 
         if (id == R.id.btn_skip) {
             Intent intent = new Intent(this, ReportToBgbActivity.class);
             startActivity(intent);
         }
 
-        if(!DeviceInfoUtils.checkMarshMallowPermission(this))return;
+        if (!DeviceInfoUtils.checkMarshMallowPermission(this)) return;
 
 
         if (!DeviceInfoUtils.checkInternetConnectionAndGps(this)) return;
@@ -131,7 +166,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (showWarningDialog()) {
 
                 if (identifier != null) {
-                    hitUrlForLogin(Url.URL_LOGIN, user_id, password, identifier);
+                    Log.d("DEBUG_ID", identifier);
+                    hitUrlForLogin(AppController.getInstance().getPrefManger().getBaseUrl() + Url.URL_LOGIN, user_id, password, identifier);
                 } else {
                     Log.d("DEBUG", "sorry");
                 }
@@ -141,7 +177,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    private void hitUrlForLogin(String url, final String user_id, final String password, final String mobileNumber) {
+    private void hitUrlForLogin(String url, final String user_id, final String password, final String imieNumber) {
         // TODO Auto-generated method stub
         showOrHideProgressBar();
 
@@ -159,7 +195,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             if (status == 1) {
                                 String id = jsonObject.getString("id");
                                 //Log.d("DEBUG",String.valueOf(id));
-                                User user = new User(id, user_id);
+                                User user = new User(id, user_id,imieNumber);
                                 AppController.getInstance().getPrefManger().setUserProfile(user);
 
                                 Intent intent = new Intent(MainActivity.this, HomeActivity.class);
@@ -189,7 +225,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Map<String, String> params = new HashMap<String, String>();
                 params.put("username", user_id);
                 params.put("password", password);
-                params.put("imieNumber", "01737104638");
+                params.put("imieNumber", imieNumber);
                 //params.put("mobileNumber",mobileNumber);
                 return params;
             }
@@ -201,63 +237,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         AppController.getInstance().addToRequestQueue(req);
     }
 
-    private void hitUrlForCheckAppUpdate(String url) {
-        // TODO Auto-generated method stub
-        showOrHideProgressBar();
-
-        Log.d("DEBUG",url);
-
-        final StringRequest req = new StringRequest(com.android.volley.Request.Method.GET, url,
-                new com.android.volley.Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-
-
-                        response = "{\"version\":\"1.0\",\"url\":\"\"}";
-
-                        Log.d("DEBUG",response);
-
-                        showOrHideProgressBar();
-
-                        try {
-                            JSONObject jsonObject = new JSONObject(response);
-                            String version = jsonObject.getString("version");
-
-                            if (!version.equalsIgnoreCase(AppController.getInstance().getPrefManger().getAppVersion())) {
-
-                                Log.d("DEBUG","its_here");
-                                    AlertDialogForAnything.showAlertDialogForceUpdateFromDropBox(MainActivity.this,
-                                            "App Update","Press Download To Download The Updated App","DOWNLOAD",
-                                            jsonObject.getString("url"));
-                            }
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-
-                            Log.d("DEBUG","error");
-                        }
-
-
-                    }
-                }, new com.android.volley.Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-
-                showOrHideProgressBar();
-
-                Log.d("DEBUG","error");
-
-
-            }
-        });
-
-        req.setRetryPolicy(new DefaultRetryPolicy(30000,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-        // TODO Auto-generated method stub
-        AppController.getInstance().addToRequestQueue(req);
-    }
 
     private void showOrHideProgressBar() {
+
         if (progressDialog.isShowing()) {
             progressDialog.dismiss();
         } else
@@ -323,6 +305,53 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             //Log.d("DEBUG","Its here");
         }
+
+
+    }
+
+    public void showDialogForSetting() {
+        final Dialog dialog = new Dialog(this,
+                android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
+        dialog.setCancelable(true);
+        dialog.setContentView(R.layout.dialog_settingpassword);
+
+
+        final EditText et_dialog_password = (EditText) dialog.findViewById(R.id.dialog_password);
+
+        Button btn_submit = (Button) dialog.findViewById(R.id.dialog_submit);
+        Button btn_cancel = (Button) dialog.findViewById(R.id.dialog_cancel);
+        btn_cancel.setVisibility(View.VISIBLE);
+
+        btn_submit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String password = et_dialog_password.getText().toString().trim();
+
+
+                if (password.isEmpty()) {
+                    et_dialog_password.setError("Enter Password");
+                    return;
+                }
+                if (password.equals(AppConstant.ADMIN_PASSWORD)) {
+                    Intent intent = new Intent(MainActivity.this, SettingActivity.class);
+                    startActivity(intent);
+
+                    dialog.dismiss();
+                } else {
+                    et_dialog_password.setError("Wrong Password");
+                }
+            }
+        });
+
+        btn_cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+
+        dialog.show();
 
 
     }

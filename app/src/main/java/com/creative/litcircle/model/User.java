@@ -9,6 +9,14 @@ public class User {
     String user_id;
     String name;
     String email;
+    String imieNumber;
+
+
+    public User(String id, String user_id, String imieNumber) {
+        this.id = id;
+        this.user_id = user_id;
+        this.imieNumber = imieNumber;
+    }
 
     public User(String id, String user_id) {
         this.id = id;
@@ -52,5 +60,13 @@ public class User {
 
     public void setUser_id(String user_id) {
         this.user_id = user_id;
+    }
+
+    public String getImieNumber() {
+        return imieNumber;
+    }
+
+    public void setImieNumber(String imieNumber) {
+        this.imieNumber = imieNumber;
     }
 }

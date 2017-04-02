@@ -68,7 +68,8 @@ public class ReportToBgbActivity extends AppCompatActivity {
 
                             String message =  ed_message.getText().toString();
 
-                            hitUrlToSubmitUserReport(Url.URL_REPORT_TO_BGB,name,mobile,address,message);
+                            hitUrlToSubmitUserReport(AppController.getInstance().getPrefManger().getBaseUrl() + Url.URL_REPORT_TO_BGB,
+                                    name,mobile,address,message);
 
 
                         }

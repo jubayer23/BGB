@@ -4,6 +4,8 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -21,6 +23,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.creative.litcircle.NewPillarsEntry;
 import com.creative.litcircle.R;
 import com.creative.litcircle.alertbanner.AlertDialogForAnything;
+import com.creative.litcircle.appdata.AppConstant;
 import com.creative.litcircle.appdata.AppController;
 import com.creative.litcircle.appdata.Url;
 import com.creative.litcircle.service.GpsService;
@@ -42,8 +45,6 @@ public class HomeFragment extends Fragment {
 
     private ProgressDialog progressDialog;
 
-    private Fragment fragment_update_pillar;
-
     private static final String TAG_BTN_START = "Start Patrolling";
     private static final String TAG_BTN_STOP = "Stop Patrolling";
 
@@ -55,7 +56,22 @@ public class HomeFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_home, container,
                 false);
 
-        fragment_update_pillar = new UpdatePillarInfoFragment();
+        PackageInfo pInfo = null;
+        try {
+            pInfo = getActivity().getPackageManager().getPackageInfo(getActivity().getPackageName(), 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        String version = pInfo.versionName;
+
+
+        if(!version.equalsIgnoreCase(AppController.getInstance().getPrefManger().getAppVersion())){
+
+            AlertDialogForAnything.showAlertDialogForceUpdateFromDropBox(getActivity(),
+                    "App Update","Press Download To Download The Updated App","DOWNLOAD",
+                    AppConstant.APP_UPDATE_URL);
+        }
+
 
         btn_start_petroling = (Button) view.findViewById(R.id.btn_startpetroling);
 
@@ -82,9 +98,9 @@ public class HomeFragment extends Fragment {
                     return;
                 }
 
-                final LastLocationOnly lastLocationOnly = new LastLocationOnly(getActivity());
+                final LastLocationOnly[] lastLocationOnly = {new LastLocationOnly(getActivity())};
 
-                if(!lastLocationOnly.canGetLocation()){
+                if(!lastLocationOnly[0].canGetLocation()){
                     GpsEnableTool gpsEnableTool =  new GpsEnableTool(getActivity());
                     gpsEnableTool.enableGPs();
                     return;
@@ -92,16 +108,26 @@ public class HomeFragment extends Fragment {
 
                 if (btn.getText().toString().equalsIgnoreCase(TAG_BTN_START)) {
 
-                    double loc_lat = (double) Math.round(lastLocationOnly.getLatitude() * 100000d) / 100000d;
-                    double loc_lng = (double) Math.round(lastLocationOnly.getLongitude() * 100000d) / 100000d;
+                    lastLocationOnly[0] = new LastLocationOnly(getActivity());
+
+                    double loc_lat = (double) Math.round(lastLocationOnly[0].getLatitude() * 100000d) / 100000d;
+                    double loc_lng = (double) Math.round(lastLocationOnly[0].getLongitude() * 100000d) / 100000d;
+
+                    if((loc_lat == loc_lng) || (loc_lat == 0) || (loc_lng == 0)){
+                        AlertDialogForAnything.showAlertDialogWhenComplte(getActivity(), "GPS problem",
+                                "Please press start patrolling again!", false);
+                        //stop executing code by return
+                        return;
+                    }
 
                     String user_lat = String.valueOf(loc_lat);
                     String user_lang = String.valueOf(loc_lng);
-                    Log.d("DEBUG_START_LAT",user_lat);
-                    Log.d("DEBUG_START_LANG",user_lang);
+                    //Log.d("DEBUG_START_LAT",user_lat);
+                    //Log.d("DEBUG_START_LANG",user_lang);
 
 
-                   hitUrlForStartGps(Url.URL_SOLDIER_LOCATION, AppController.getInstance().getPrefManger().getUserProfile().getId(),
+                   hitUrlForStartGps(AppController.getInstance().getPrefManger().getBaseUrl() + Url.URL_SOLDIER_LOCATION,
+                           AppController.getInstance().getPrefManger().getUserProfile().getId(),
                            user_lat, user_lang,btn);
 
                 } else {
@@ -115,16 +141,26 @@ public class HomeFragment extends Fragment {
                     alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
 
+                            lastLocationOnly[0] = new LastLocationOnly(getActivity());
 
-                            double loc_lat = (double) Math.round(lastLocationOnly.getLatitude() * 100000d) / 100000d;
-                            double loc_lng = (double) Math.round(lastLocationOnly.getLongitude() * 100000d) / 100000d;
+
+                            double loc_lat = (double) Math.round(lastLocationOnly[0].getLatitude() * 100000d) / 100000d;
+                            double loc_lng = (double) Math.round(lastLocationOnly[0].getLongitude() * 100000d) / 100000d;
+
+                            if((loc_lat == loc_lng) || (loc_lat == 0) || (loc_lng == 0)){
+                                AlertDialogForAnything.showAlertDialogWhenComplte(getActivity(), "GPS problem",
+                                        "Please press stop patrolling again!", false);
+                                //stop executing code by return
+                                return;
+                            }
                             //STOP SERVICE
                             String user_lat = String.valueOf(loc_lat);
                             String user_lang = String.valueOf(loc_lng);
-                            Log.d("DEBUG_END_LAT",user_lat);
-                            Log.d("DEBUG_END_LANG",user_lang);
+                            //Log.d("DEBUG_END_LAT",user_lat);
+                           // Log.d("DEBUG_END_LANG",user_lang);
 
-                            hitUrlForStopGps(Url.URL_SOLDIER_LOCATION, AppController.getInstance().getPrefManger().getUserProfile().getId(),
+                            hitUrlForStopGps(AppController.getInstance().getPrefManger().getBaseUrl() + Url.URL_SOLDIER_LOCATION,
+                                    AppController.getInstance().getPrefManger().getUserProfile().getId(),
                                     user_lat, user_lang,btn);
                         }
                     });
@@ -181,7 +217,6 @@ public class HomeFragment extends Fragment {
 
         if (SavedInstanceState == null) {
             init();
-
         } else {
 
         }
@@ -252,7 +287,7 @@ public class HomeFragment extends Fragment {
                 params.put("id", id);
                 params.put("latitude", lat);
                 params.put("longitude", lng);
-                params.put("authUsername",AppController.getInstance().getPrefManger().getUserProfile().getUser_id());
+                params.put("authImie",AppController.getInstance().getPrefManger().getUserProfile().getImieNumber());
                 return params;
             }
         };
@@ -312,7 +347,7 @@ public class HomeFragment extends Fragment {
                 params.put("latitude", lat);
                 params.put("longitude", lng);
                 params.put("patrolId",AppController.getInstance().getPrefManger().getPetrolId());
-                params.put("authUsername",AppController.getInstance().getPrefManger().getUserProfile().getUser_id());
+                params.put("authImie",AppController.getInstance().getPrefManger().getUserProfile().getImieNumber());
                 params.put("endPatrol","true");
                 // params.put("latitude", "24.898325");
                 //  params.put("longitude", "91.902535");

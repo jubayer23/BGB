@@ -22,4 +22,7 @@ public class AppConstant {
 
     public static final String pillar_entry_new = "1";
     public static final String pillar_entry_update = "0";
+    public static final String CURRENT_APP_VERSION = "1.0";
+    public static final String ADMIN_PASSWORD = "1127";
+    public static String APP_UPDATE_URL = "";
 }

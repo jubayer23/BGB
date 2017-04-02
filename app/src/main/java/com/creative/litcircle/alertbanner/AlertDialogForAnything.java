@@ -6,6 +6,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.util.Log;
+
+import com.creative.litcircle.appdata.AppController;
 
 
 public class AlertDialogForAnything {
@@ -65,19 +68,23 @@ public class AlertDialogForAnything {
 	}
 
 	public static void showAlertDialogForceUpdateFromDropBox(final Context context, String titleText, String msg, String buttonText, final String appURL) {
-		AlertDialog.Builder alertDialog = new AlertDialog.Builder(context);
+		final AlertDialog.Builder alertDialog = new AlertDialog.Builder(context);
 		alertDialog.setTitle(titleText);
 		alertDialog.setMessage(msg);
 		alertDialog.setPositiveButton(buttonText, new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int which) {
+
 				if (appURL.length() > 0) {
+
 
 					String urlString=appURL;
 					Intent intent=new Intent(Intent.ACTION_VIEW,Uri.parse(urlString));
 					intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 					intent.setPackage("com.android.chrome");
 					try {
+						AppController.getInstance().getPrefManger().setAppUpdateWaitingStage(true);
 						context.startActivity(intent);
+
 					} catch (ActivityNotFoundException ex) {
 						// Chrome browser presumably not installed so allow user to choose instead
 						intent.setPackage(null);
@@ -85,6 +92,13 @@ public class AlertDialogForAnything {
 					}
 
 				}
+			}
+		});
+
+		alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+
+				dialog.cancel();
 			}
 		});
 		alertDialog.show();

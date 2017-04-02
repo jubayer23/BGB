@@ -18,6 +18,7 @@
     <string name="title_activity_report_to_bgb">Report To Bgb</string>
     <string name="about">The app is for personal communication between BGB internal connections.</string>
     <string name="about_page">About</string>
+    <string name="title_setting">Setting</string>
 
 
 </resources>

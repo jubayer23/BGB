@@ -96,8 +96,9 @@ public class UploadActivity extends AppCompatActivity implements UploadStatusDel
         try {
             //String uploadId = UUID.randomUUID().toString();
             //Creating a multi part request
-            MultipartUploadRequest req = new MultipartUploadRequest(this, Url.URL_PILLAR_UPDATE)
-                    .addParameter("authUsername", AppController.getInstance().getPrefManger().getUserProfile().getUser_id())
+            MultipartUploadRequest req = new MultipartUploadRequest(this,
+                    AppController.getInstance().getPrefManger().getBaseUrl() + Url.URL_PILLAR_UPDATE)
+                    .addParameter("authImie", AppController.getInstance().getPrefManger().getUserProfile().getImieNumber())
                     .addFileToUpload(path, "file") //Adding file
                     .addParameter("id", pillar_id)
                     .addParameter("situation", pillar_condition)
@@ -127,12 +128,13 @@ public class UploadActivity extends AppCompatActivity implements UploadStatusDel
         try {
             //String uploadId = UUID.randomUUID().toString();
             //Creating a multi part request
-            MultipartUploadRequest req = new MultipartUploadRequest(this, Url.URL_PILLAR_UPDATE)
+            MultipartUploadRequest req = new MultipartUploadRequest(this,
+                    AppController.getInstance().getPrefManger().getBaseUrl() + Url.URL_PILLAR_UPDATE)
                     .addFileToUpload(path, "file") //Adding file
                     .addParameter("id", pillar_id)
                     .addParameter("situation", pillar_condition)
                     .addParameter("newEntry", pillar_entry_code)
-                    .addParameter("authUsername", AppController.getInstance().getPrefManger().getUserProfile().getUser_id())
+                    .addParameter("authImie", AppController.getInstance().getPrefManger().getUserProfile().getImieNumber())
                     .addParameter("soldierId", AppController.getInstance().getPrefManger().getUserProfile().getId())
                     .setNotificationConfig(new UploadNotificationConfig())
                     .setAutoDeleteFilesAfterSuccessfulUpload(true)

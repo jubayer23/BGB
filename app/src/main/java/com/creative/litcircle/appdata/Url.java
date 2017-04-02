@@ -9,19 +9,19 @@ public class Url {
 
     //public static String BaseUrl = "http://173.254.242.246:8084/BGB/";
 
-    public static final String URL_LOGIN =  BaseUrl + "userLogin";
+    public static final String URL_LOGIN =   "userLogin";
 
-    public static final String URL_PILLAR_UPDATE = BaseUrl + "updatePillar";
+    public static final String URL_PILLAR_UPDATE = "updatePillar";
 
-    public static final String URL_PILLAR_INFO = BaseUrl +  "getPillarNames";
+    public static final String URL_PILLAR_INFO =  "getPillarNames";
 
-    public static final String URL_SOLDIER_LOCATION =  BaseUrl + "updateSoldierLocation";
+    public static final String URL_SOLDIER_LOCATION =  "updateSoldierLocation";
 
-    public static final String URL_REPORT_TO_BGB =  BaseUrl + "reportToBGB";
+    public static final String URL_REPORT_TO_BGB =  "reportToBGB";
 
     public static final String URL_APP_ACTIVE =  "http://besafebd.com/server/checkApp.php";
 
-    public static final String URL_CHECK_APP_UPDATE =  BaseUrl + "updateApp";
+    public static final String URL_CHECK_APP_UPDATE =   "updateApp";
 
 
 

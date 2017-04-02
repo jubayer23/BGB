@@ -101,7 +101,7 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
 
         init();
 
-        hitUrlForPillarInfo(Url.URL_PILLAR_INFO);
+        hitUrlForPillarInfo(AppController.getInstance().getPrefManger().getBaseUrl() + Url.URL_PILLAR_INFO);
 
     }
 
@@ -113,11 +113,11 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
 
         Map<String, List<String>> map = map_sub_pillar;
         int counter = 0;
-        for (Map.Entry<String, List<String>> entry : map.entrySet())
-        {
-            if (counter++ > 37) {
-                main_pillar_names.add(String.valueOf(entry.getKey()));
-            }
+        for (Map.Entry<String, List<String>> entry : map.entrySet()) {
+
+
+            main_pillar_names.add(String.valueOf(entry.getKey()));
+
         }
         ArrayAdapter<String> dataAdapter_pillars_name = new ArrayAdapter<String>
                 (this, R.layout.spinner_item, main_pillar_names);
@@ -187,6 +187,8 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
                     @Override
                     public void onResponse(String response) {
 
+                        response = response.replaceAll("\\s+","");
+
                         try {
                             map_pillar_info.clear();
                             map_sub_pillar.clear();
@@ -195,6 +197,7 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
                             // pillars.clear();
 
                             JSONArray jsonArray = new JSONArray(response);
+                            int count = 0;
 
                             for (int i = 0; i < jsonArray.length(); i++) {
                                 JSONObject jsonObject = jsonArray.getJSONObject(i);
@@ -204,6 +207,9 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
                                 String lat = jsonObject.getString("latitude");
                                 String lang = jsonObject.getString("longitude");
                                 String url = jsonObject.getString("url");
+
+
+                                if (Integer.parseInt(id) <= 37) continue;
 
                                 Pillar pillar = new Pillar(id, name, lat, lang, url);
 
@@ -227,8 +233,10 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
                                 }
                                 map_sub_pillar.put(main_sub[0], temp_list);
 
+                                count++;
 
                             }
+
                             //MANUPULATE SPINNER
                             manuPulateSpinner();
 
@@ -252,7 +260,7 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
             protected Map<String, String> getParams() {
                 //userId=XXX&routeId=XXX&selected=XXX
                 Map<String, String> params = new HashMap<String, String>();
-                params.put("authUsername", AppController.getInstance().getPrefManger().getUserProfile().getUser_id());
+                params.put("authImie", AppController.getInstance().getPrefManger().getUserProfile().getImieNumber());
                 return params;
             }
         };
@@ -443,6 +451,7 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
     public void onBackPressed() {
         if (!isFreezeActivity) {
             if (isAbleToBack) {
+                st_time = 0;
                 super.onBackPressed();
             } else {
                 AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
@@ -486,13 +495,13 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
     }
 
 
-    static int st_time = 0;
+    private static int st_time = 0;
+
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long id) {
 
 
-
-        if(st_time == 0){
+        if (st_time == 0) {
             st_time++;
             return;
         }
@@ -524,4 +533,6 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
     public void onNothingSelected(AdapterView<?> adapterView) {
 
     }
+
+
 }
