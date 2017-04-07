@@ -7,10 +7,11 @@ import android.view.MenuItem;
 import android.widget.TextView;
 
 import com.creative.litcircle.R;
+import com.creative.litcircle.utils.DeviceInfoUtils;
 
 public class AboutActivity extends AppCompatActivity {
 
-    private TextView tv_all_rights_reserve,tv_developed_by;
+    private TextView tv_all_rights_reserve,tv_developed_by,tv_app_version;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,6 +21,9 @@ public class AboutActivity extends AppCompatActivity {
         tv_all_rights_reserve = (TextView)findViewById(R.id.tv_all_rights_reserve);
 
         tv_developed_by = (TextView)findViewById(R.id.tv_developed_by);
+
+        tv_app_version = (TextView)findViewById(R.id.tv_app_version);
+        tv_app_version.setText("App Version : " + DeviceInfoUtils.getAppVersionName());
 
         tv_all_rights_reserve.setText(Html.fromHtml("@All Rights Reserved To" + "<font color=blue><b>" + " BGB" + "</font></b>"));
 

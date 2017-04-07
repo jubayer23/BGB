@@ -3,19 +3,32 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-
     tools:context="com.creative.litcircle.userview.AboutActivity">
 
 
     <TextView
+        android:id="@+id/tv_about"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:layout_margin="10dp"
         android:gravity="center"
         android:text="@string/about"
+        android:textColor="@color/black"
         android:textSize="22sp"
         android:textStyle="italic" />
+
+    <TextView
+        android:id="@+id/tv_app_version"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tv_about"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:text="App Version : 1.0"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:textSize="15sp" />
 
 
     <LinearLayout

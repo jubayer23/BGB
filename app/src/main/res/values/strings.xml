@@ -9,7 +9,8 @@
     <string name="drawer_open">drawer open</string>
     <string name="drawer_close">drawer close</string>
     <string name="new_pillars_entry">New Pillars Entry</string>
-    <string name="take_pic">Take Pillar Picture</string>
+    <string name="take_pillar_pic">Take Pillar Picture</string>
+    <string name="take_event_pic">Take Picture</string>
     <string name="change_pic">Change Picture</string>
 
     <string name="cancel_upload">Cancel upload</string>
@@ -19,6 +20,7 @@
     <string name="about">The app is for personal communication between BGB internal connections.</string>
     <string name="about_page">About</string>
     <string name="title_setting">Setting</string>
+    <string name="special_operation">Special Operation</string>
 
 
 </resources>

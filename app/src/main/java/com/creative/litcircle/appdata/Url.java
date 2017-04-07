@@ -7,7 +7,7 @@ public class Url {
 
     public static String BaseUrl = "http://173.254.242.246:8084/bgb/";
 
-    //public static String BaseUrl = "http://173.254.242.246:8084/BGB/";
+    //public static String BaseUrl = "https://b5e99a4d.ngrok.io/bgb/";
 
     public static final String URL_LOGIN =   "userLogin";
 

@@ -23,7 +23,7 @@
         <activity
             android:name=".MainActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/AppThemeNoActionBar"></activity>
+            android:theme="@style/AppThemeNoActionBar" />
         <activity
             android:name=".HomeActivity"
             android:label="@string/HomeActivity"
@@ -38,7 +38,7 @@
             android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
             android:theme="@style/Base.Theme.AppCompat" />
         <activity
-            android:name=".UploadActivity"
+            android:name=".helperActivity.UploadActivity"
             android:label="@string/upload"
             android:parentActivityName=".NewPillarsEntry"
             android:screenOrientation="portrait"
@@ -73,7 +73,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".userview.SettingActivity"
             android:label="@string/title_setting"
@@ -83,6 +82,16 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.creative.litcircle.MainActivity" />
         </activity>
+
+
+        <activity
+            android:name=".SpeacialOps"
+            android:label="@string/special_operation"
+            android:parentActivityName=".HomeActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme" />
+
+        <activity android:name=".helperActivity.OpenCameraToTakePic" />
     </application>
 
 </manifest>

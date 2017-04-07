@@ -40,6 +40,9 @@
     <color name="green_2">#f61f9b0c</color>
     <color name="green_dark">#06342A</color>
 
+    <color name="yellow">#b7973f</color>
+    <color name="yellow_light">#e7e01b</color>
+
     <color name="red">#e60b45</color>
 
     <color name="red_2">#b40836</color>

@@ -9,6 +9,7 @@ import android.util.Log;
 import com.creative.litcircle.appdata.AppConstant;
 import com.creative.litcircle.appdata.Url;
 import com.creative.litcircle.model.User;
+import com.creative.litcircle.utils.DeviceInfoUtils;
 import com.google.gson.Gson;
 
 
@@ -44,9 +45,6 @@ public class PrefManager {
     private static final String KEY_BASE_URL = "base_url";
 
 
-    private static final String KEY_APP_UPDATE_WAITING_STAGE = "waiting_stage";
-
-
     public PrefManager(Context context) {
         this._context = context;
         pref = _context.getSharedPreferences(PREF_NAME, PRIVATE_MODE);
@@ -66,19 +64,6 @@ public class PrefManager {
         return pref.getString(KEY_LOGIN_TYPE, "");
     }
 
-
-    public void setAppUpdateWaitingStage(boolean type) {
-        editor = pref.edit();
-
-        editor.putBoolean(KEY_APP_UPDATE_WAITING_STAGE, type);
-
-        // commit changes
-        editor.commit();
-    }
-
-    public boolean getAppUpdateWaitingStage() {
-        return pref.getBoolean(KEY_APP_UPDATE_WAITING_STAGE, false);
-    }
 
     public void setBaseUrl(String type) {
         editor = pref.edit();
@@ -103,7 +88,7 @@ public class PrefManager {
     }
 
     public String getAppVersion() {
-        return pref.getString(KEY_APP_VERSION, AppConstant.CURRENT_APP_VERSION);
+        return pref.getString(KEY_APP_VERSION, DeviceInfoUtils.getAppVersionName());
     }
 
     public void setPetrolId(String type) {
@@ -117,6 +102,7 @@ public class PrefManager {
     public String getPetrolId() {
         return pref.getString(KEY_PETROL_ID, "");
     }
+
 
     public void setUserProfile(User obj) {
         editor = pref.edit();

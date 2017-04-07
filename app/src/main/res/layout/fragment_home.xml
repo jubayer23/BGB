@@ -8,7 +8,9 @@
     <Button
         android:id="@+id/btn_startpetroling"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="wrap_content"
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp"
         android:layout_margin="20dp"
         android:background="@drawable/btn_selector_start_patrolling"
         android:text="Start Patrolling"
@@ -16,19 +18,35 @@
         android:textSize="30sp"
         android:textStyle="bold" />
 
+    <Button
+        android:id="@+id/btn_stoppatrolling"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp"
+        android:layout_margin="20dp"
+        android:background="@drawable/btn_selector_stop_patrolling"
+        android:text="Stop Patrolling"
+        android:textColor="@color/white"
+        android:visibility="gone"
+        android:textSize="30sp"
+        android:textStyle="bold" />
+
 
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:gravity="center"
         android:orientation="vertical">
 
         <Button
             android:id="@+id/btn_new_pillar_entry"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_height="wrap_content"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
             android:layout_margin="20dp"
+            android:visibility="gone"
             android:background="@drawable/btn_selector_start_patrolling"
             android:text="New Pillamar Entry"
             android:textColor="@color/white"
@@ -38,9 +56,11 @@
         <Button
             android:id="@+id/btn_special_ops"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_height="wrap_content"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
             android:layout_margin="20dp"
-            android:background="@drawable/btn_selector_start_patrolling"
+            android:background="@drawable/btn_selector_special_ops"
             android:text="Special Operation"
             android:textColor="@color/white"
             android:textSize="30sp"

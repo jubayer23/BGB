@@ -62,8 +62,8 @@ public class GpsService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
 
-       stopService(new Intent(_context, GPSTracker.class));
-       startService(new Intent(_context, GPSTracker.class));
+        stopService(new Intent(_context, GPSTracker.class));
+        startService(new Intent(_context, GPSTracker.class));
 
         doInBackGround();
 
@@ -102,23 +102,28 @@ public class GpsService extends Service {
 
                                 Location locaion = GPSTracker.location;
 
-                                if(locaion == null)return;
+                                if (locaion == null) {
+                                    Log.d("DEBUG_ALERT","location become null");
+                                    stopService(new Intent(_context, GPSTracker.class));
+                                    startService(new Intent(_context, GPSTracker.class));
+                                    return;
+                                }
 
                                 double loc_lat = (double) Math.round(locaion.getLatitude() * 100000d) / 100000d;
                                 double loc_lng = (double) Math.round(locaion.getLongitude() * 100000d) / 100000d;
                                 locaion.setLatitude(loc_lat);
                                 locaion.setLongitude(loc_lng);
 
-                               // Log.d("DEBUG_IN_LAT_1",String.valueOf(loc_lat));
-                               // Log.d("DEBUG_IN_LANG_1",String.valueOf(loc_lng));
+                                Log.d("DEBUG_IN_LAT_1", String.valueOf(loc_lat));
+                                Log.d("DEBUG_IN_LANG_1", String.valueOf(loc_lng));
 
 
                                 if (isBetterLocation(locaion, previousLocation)) {
                                     String user_lat = String.valueOf(locaion.getLatitude());
                                     String user_lang = String.valueOf(locaion.getLongitude());
 
-                                   // Log.d("DEBUG_IN_LAT_2",user_lat);
-                                  //  Log.d("DEBUG_IN_LANG_2",user_lang);
+                                    Log.d("DEBUG_IN_LAT_2", user_lat);
+                                    Log.d("DEBUG_IN_LANG_2", user_lang);
 
                                     hitUrlForGps(
                                             AppController.getInstance().getPrefManger().getBaseUrl() + Url.URL_SOLDIER_LOCATION,
@@ -202,15 +207,19 @@ public class GpsService extends Service {
         if (previousLocation == null) return true;
 
         else {
+            double current_lat = currentLocation.getLatitude();
+            double current_lang = currentLocation.getLongitude();
             if ((currentLocation.getLatitude() == previousLocation.getLatitude()) && (currentLocation.getLongitude()
                     == previousLocation.getLongitude())) {
 
+                return false;
+            } else if ((current_lat == current_lang) || current_lat == 0 || current_lang == 0) {
                 return false;
             } else {
                 double distance = 0;
 
                 distance = currentLocation.distanceTo(previousLocation);
-                if(distance < 12)return false;
+                if (distance < 12) return false;
 
             }
             return true;

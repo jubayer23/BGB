@@ -22,12 +22,14 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.creative.litcircle.NewPillarsEntry;
 import com.creative.litcircle.R;
+import com.creative.litcircle.SpeacialOps;
 import com.creative.litcircle.alertbanner.AlertDialogForAnything;
 import com.creative.litcircle.appdata.AppConstant;
 import com.creative.litcircle.appdata.AppController;
 import com.creative.litcircle.appdata.Url;
 import com.creative.litcircle.service.GpsService;
 import com.creative.litcircle.utils.ConnectionDetector;
+import com.creative.litcircle.utils.DeviceInfoUtils;
 import com.creative.litcircle.utils.GPSTracker;
 import com.creative.litcircle.utils.GpsEnableTool;
 import com.creative.litcircle.utils.LastLocationOnly;
@@ -38,15 +40,12 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements View.OnClickListener {
 
     private ProgressBar progressBar;
-    private Button btn_start_petroling, btn_new_pillar_entry;
+    private Button btn_start_petroling, btn_new_pillar_entry, btn_stop_patrolling, btn_special_ops;
 
     private ProgressDialog progressDialog;
-
-    private static final String TAG_BTN_START = "Start Patrolling";
-    private static final String TAG_BTN_STOP = "Stop Patrolling";
 
     private ConnectionDetector cd;
 
@@ -56,157 +55,28 @@ public class HomeFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_home, container,
                 false);
 
-        PackageInfo pInfo = null;
-        try {
-            pInfo = getActivity().getPackageManager().getPackageInfo(getActivity().getPackageName(), 0);
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        String version = pInfo.versionName;
+        String version = DeviceInfoUtils.getAppVersionName();
 
 
-        if(!version.equalsIgnoreCase(AppController.getInstance().getPrefManger().getAppVersion())){
+        if (!version.equalsIgnoreCase(AppController.getInstance().getPrefManger().getAppVersion())) {
 
-            AlertDialogForAnything.showAlertDialogForceUpdateFromDropBox(getActivity(),
-                    "App Update","Press Download To Download The Updated App","DOWNLOAD",
-                    AppConstant.APP_UPDATE_URL);
+            if (DeviceInfoUtils.checkMarshMallowPermission(getActivity())) {
+                AlertDialogForAnything.showAlertDialogForceUpdateFromDropBox(getActivity(),
+                        "App Update", "Press Download To Download The Updated App", "DOWNLOAD",
+                        AppConstant.APP_UPDATE_URL);
+            }
+
         }
 
 
-        btn_start_petroling = (Button) view.findViewById(R.id.btn_startpetroling);
+        init(view);
 
-        btn_new_pillar_entry = (Button) view.findViewById(R.id.btn_new_pillar_entry);
+        if (!AppController.getInstance().getPrefManger().getPetrolId().isEmpty()) {
 
-
-        if(!AppController.getInstance().getPrefManger().getPetrolId().isEmpty()){
-            btn_start_petroling.setText(TAG_BTN_STOP);
-            btn_start_petroling.setBackgroundResource(R.drawable.btn_selector_stop_patrolling);
+            btn_stop_patrolling.setVisibility(View.VISIBLE);
+            btn_start_petroling.setVisibility(View.GONE);
             btn_new_pillar_entry.setVisibility(View.VISIBLE);
         }
-
-        btn_start_petroling.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                final Button btn = (Button) view;
-
-                if (!cd.isConnectingToInternet()) {
-                    //Internet Connection is not present
-                    AlertDialogForAnything.showAlertDialogWhenComplte(getActivity(), "Internet Connection Error",
-                            "Please connect to working Internet connection", false);
-                    //stop executing code by return
-                    return;
-                }
-
-                final LastLocationOnly[] lastLocationOnly = {new LastLocationOnly(getActivity())};
-
-                if(!lastLocationOnly[0].canGetLocation()){
-                    GpsEnableTool gpsEnableTool =  new GpsEnableTool(getActivity());
-                    gpsEnableTool.enableGPs();
-                    return;
-                }
-
-                if (btn.getText().toString().equalsIgnoreCase(TAG_BTN_START)) {
-
-                    lastLocationOnly[0] = new LastLocationOnly(getActivity());
-
-                    double loc_lat = (double) Math.round(lastLocationOnly[0].getLatitude() * 100000d) / 100000d;
-                    double loc_lng = (double) Math.round(lastLocationOnly[0].getLongitude() * 100000d) / 100000d;
-
-                    if((loc_lat == loc_lng) || (loc_lat == 0) || (loc_lng == 0)){
-                        AlertDialogForAnything.showAlertDialogWhenComplte(getActivity(), "GPS problem",
-                                "Please press start patrolling again!", false);
-                        //stop executing code by return
-                        return;
-                    }
-
-                    String user_lat = String.valueOf(loc_lat);
-                    String user_lang = String.valueOf(loc_lng);
-                    //Log.d("DEBUG_START_LAT",user_lat);
-                    //Log.d("DEBUG_START_LANG",user_lang);
-
-
-                   hitUrlForStartGps(AppController.getInstance().getPrefManger().getBaseUrl() + Url.URL_SOLDIER_LOCATION,
-                           AppController.getInstance().getPrefManger().getUserProfile().getId(),
-                           user_lat, user_lang,btn);
-
-                } else {
-
-                    AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
-
-                    alertDialog.setTitle("Alert!!");
-
-                    alertDialog.setMessage("Are you sure to stop patrolling.");
-
-                    alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-
-                            lastLocationOnly[0] = new LastLocationOnly(getActivity());
-
-
-                            double loc_lat = (double) Math.round(lastLocationOnly[0].getLatitude() * 100000d) / 100000d;
-                            double loc_lng = (double) Math.round(lastLocationOnly[0].getLongitude() * 100000d) / 100000d;
-
-                            if((loc_lat == loc_lng) || (loc_lat == 0) || (loc_lng == 0)){
-                                AlertDialogForAnything.showAlertDialogWhenComplte(getActivity(), "GPS problem",
-                                        "Please press stop patrolling again!", false);
-                                //stop executing code by return
-                                return;
-                            }
-                            //STOP SERVICE
-                            String user_lat = String.valueOf(loc_lat);
-                            String user_lang = String.valueOf(loc_lng);
-                            //Log.d("DEBUG_END_LAT",user_lat);
-                           // Log.d("DEBUG_END_LANG",user_lang);
-
-                            hitUrlForStopGps(AppController.getInstance().getPrefManger().getBaseUrl() + Url.URL_SOLDIER_LOCATION,
-                                    AppController.getInstance().getPrefManger().getUserProfile().getId(),
-                                    user_lat, user_lang,btn);
-                        }
-                    });
-
-                    alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.cancel();
-
-                        }
-                    });
-
-                    alertDialog.show();
-
-                }
-
-            }
-        });
-
-        btn_new_pillar_entry.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
-
-                alertDialog.setTitle("Alert!!");
-
-                alertDialog.setMessage("Are You Near A Pillar?");
-
-                alertDialog.setPositiveButton("YES", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-
-                        startActivity(new Intent(getActivity(), NewPillarsEntry.class));
-                        dialog.cancel();
-                    }
-                });
-
-                alertDialog.setNegativeButton("NO", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                        AlertDialogForAnything.showAlertDialogWhenComplte(getActivity(), "Warning", "Please go near a pillar before click this button again", false);
-
-                    }
-                });
-
-                alertDialog.show();
-            }
-        });
 
         return view;
 
@@ -216,13 +86,13 @@ public class HomeFragment extends Fragment {
         super.onActivityCreated(SavedInstanceState);
 
         if (SavedInstanceState == null) {
-            init();
+            // DO something important
         } else {
 
         }
     }
 
-    private void init() {
+    private void init(View view) {
 
 
         progressDialog = new ProgressDialog(getActivity());
@@ -231,11 +101,148 @@ public class HomeFragment extends Fragment {
 
         cd = new ConnectionDetector(getActivity());
 
+        btn_start_petroling = (Button) view.findViewById(R.id.btn_startpetroling);
+        btn_start_petroling.setOnClickListener(this);
+        btn_new_pillar_entry = (Button) view.findViewById(R.id.btn_new_pillar_entry);
+        btn_new_pillar_entry.setOnClickListener(this);
+        btn_stop_patrolling = (Button) view.findViewById(R.id.btn_stoppatrolling);
+        btn_stop_patrolling.setOnClickListener(this);
+        btn_special_ops = (Button) view.findViewById(R.id.btn_special_ops);
+        btn_special_ops.setOnClickListener(this);
+
 
     }
 
 
-    private void hitUrlForStartGps(String url, final String id, final String lat, final String lng, final Button btn) {
+    @Override
+    public void onClick(View view) {
+        int id = view.getId();
+
+        if (!cd.isConnectingToInternet()) {
+            //Internet Connection is not present
+            AlertDialogForAnything.showAlertDialogWhenComplte(getActivity(), "Internet Connection Error",
+                    "Please connect to working Internet connection", false);
+            //stop executing code by return
+            return;
+        }
+
+        LastLocationOnly lastLocationOnly = new LastLocationOnly(getActivity());
+
+        if (!lastLocationOnly.canGetLocation()) {
+            GpsEnableTool gpsEnableTool = new GpsEnableTool(getActivity());
+            gpsEnableTool.enableGPs();
+            return;
+        }
+
+        lastLocationOnly = new LastLocationOnly(getActivity());
+
+        double loc_lat = (double) Math.round(lastLocationOnly.getLatitude() * 100000d) / 100000d;
+        double loc_lng = (double) Math.round(lastLocationOnly.getLongitude() * 100000d) / 100000d;
+
+        if ((loc_lat == loc_lng) || (loc_lat == 0) || (loc_lng == 0)) {
+            AlertDialogForAnything.showAlertDialogWhenComplte(getActivity(), "GPS problem",
+                    "Please press start patrolling again!", false);
+            //stop executing code by return
+            return;
+        }
+
+        final String user_lat = String.valueOf(loc_lat);
+        final String user_lang = String.valueOf(loc_lng);
+
+       // Log.d("DEBUG_LAT_S_OR_T", String.valueOf(loc_lat));
+       // Log.d("DEBUG_LAT_S_OR_T", String.valueOf(loc_lng));
+
+        if (id == R.id.btn_startpetroling) {
+
+            hitUrlForStartGps(AppController.getInstance().getPrefManger().getBaseUrl() + Url.URL_SOLDIER_LOCATION,
+                    AppController.getInstance().getPrefManger().getUserProfile().getId(),
+                    user_lat, user_lang);
+
+        }
+
+        if (id == R.id.btn_stoppatrolling) {
+
+
+            AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
+
+            alertDialog.setTitle("Alert!!");
+
+            alertDialog.setMessage("Are you sure to stop patrolling.");
+
+            alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+
+                    hitUrlForStopGps(AppController.getInstance().getPrefManger().getBaseUrl() + Url.URL_SOLDIER_LOCATION,
+                            AppController.getInstance().getPrefManger().getUserProfile().getId(),
+                            user_lat, user_lang);
+                }
+            });
+
+            alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+
+                }
+            });
+
+            alertDialog.show();
+        }
+
+        if (id == R.id.btn_new_pillar_entry) {
+
+            AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
+
+            alertDialog.setTitle("Alert!!");
+
+            alertDialog.setMessage("Are You Near A Pillar?");
+
+            alertDialog.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+
+                    startActivity(new Intent(getActivity(), NewPillarsEntry.class));
+                    dialog.cancel();
+                }
+            });
+
+            alertDialog.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                    AlertDialogForAnything.showAlertDialogWhenComplte(getActivity(), "Warning", "Please go near a pillar before click this button again", false);
+
+                }
+            });
+
+            alertDialog.show();
+        }
+
+        if (id == R.id.btn_special_ops) {
+
+            AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
+
+            alertDialog.setTitle("Alert!!");
+
+            alertDialog.setMessage("Are you want to take picture of a special event?");
+
+            alertDialog.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+
+                    startActivity(new Intent(getActivity(), SpeacialOps.class));
+                    dialog.cancel();
+                }
+            });
+
+            alertDialog.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
+
+            alertDialog.show();
+        }
+
+    }
+
+    private void hitUrlForStartGps(String url, final String id, final String lat, final String lng) {
         // TODO Auto-generated method stub
 
         showOrHideProgressBar();
@@ -246,7 +253,7 @@ public class HomeFragment extends Fragment {
                     public void onResponse(String response) {
 
                         showOrHideProgressBar();
-                        response=response.replaceAll("\\s+","");
+                        response = response.replaceAll("\\s+", "");
 
                         try {
                             JSONObject jsonObject = new JSONObject(response);
@@ -259,10 +266,10 @@ public class HomeFragment extends Fragment {
                                 getActivity().stopService(new Intent(getActivity(), GpsService.class));
                                 getActivity().startService(new Intent(getActivity(), GpsService.class));
 
-                                btn.setText(TAG_BTN_STOP);
-                                btn.setBackgroundResource(R.drawable.btn_selector_stop_patrolling);
-
+                                btn_stop_patrolling.setVisibility(View.VISIBLE);
+                                btn_start_petroling.setVisibility(View.GONE);
                                 btn_new_pillar_entry.setVisibility(View.VISIBLE);
+
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -275,7 +282,7 @@ public class HomeFragment extends Fragment {
 
                 showOrHideProgressBar();
 
-               // Log.d("DEBUG",String.valueOf(error));
+                // Log.d("DEBUG",String.valueOf(error));
 
 
             }
@@ -287,7 +294,7 @@ public class HomeFragment extends Fragment {
                 params.put("id", id);
                 params.put("latitude", lat);
                 params.put("longitude", lng);
-                params.put("authImie",AppController.getInstance().getPrefManger().getUserProfile().getImieNumber());
+                params.put("authImie", AppController.getInstance().getPrefManger().getUserProfile().getImieNumber());
                 return params;
             }
         };
@@ -299,7 +306,7 @@ public class HomeFragment extends Fragment {
     }
 
 
-    private void hitUrlForStopGps(String url, final String id, final String lat, final String lng, final Button btn) {
+    private void hitUrlForStopGps(String url, final String id, final String lat, final String lng) {
         // TODO Auto-generated method stub
 
         showOrHideProgressBar();
@@ -310,21 +317,21 @@ public class HomeFragment extends Fragment {
                     public void onResponse(String response) {
 
                         showOrHideProgressBar();
-                        response=response.replaceAll("\\s+","");
+                        response = response.replaceAll("\\s+", "");
                         try {
                             JSONObject jsonObject = new JSONObject(response);
                             String result = jsonObject.getString("result");
-                            if(result.equals("1")){
+                            if (result.equals("1")) {
                                 getActivity().stopService(new Intent(getActivity(), GpsService.class));
 
-                                btn.setText(TAG_BTN_START);
-                                btn.setBackgroundResource(R.drawable.btn_selector_start_patrolling);
 
+                                btn_start_petroling.setVisibility(View.VISIBLE);
+                                btn_stop_patrolling.setVisibility(View.GONE);
                                 btn_new_pillar_entry.setVisibility(View.GONE);
 
                                 AppController.getInstance().getPrefManger().setPetrolId("");
-                            }else{
-                                AlertDialogForAnything.showAlertDialogWhenComplte(getActivity(),"Alert","There is something wrong when stop patrolling",false);
+                            } else {
+                                AlertDialogForAnything.showAlertDialogWhenComplte(getActivity(), "Alert", "There is something wrong when stop patrolling", false);
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -346,12 +353,9 @@ public class HomeFragment extends Fragment {
                 params.put("id", id);
                 params.put("latitude", lat);
                 params.put("longitude", lng);
-                params.put("patrolId",AppController.getInstance().getPrefManger().getPetrolId());
-                params.put("authImie",AppController.getInstance().getPrefManger().getUserProfile().getImieNumber());
-                params.put("endPatrol","true");
-                // params.put("latitude", "24.898325");
-                //  params.put("longitude", "91.902535");
-
+                params.put("patrolId", AppController.getInstance().getPrefManger().getPetrolId());
+                params.put("authImie", AppController.getInstance().getPrefManger().getUserProfile().getImieNumber());
+                params.put("endPatrol", "true");
                 return params;
             }
         };

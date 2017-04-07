@@ -9,7 +9,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
@@ -27,23 +26,20 @@ import com.creative.litcircle.alertbanner.AlertDialogForAnything;
 import com.creative.litcircle.appdata.AppConstant;
 import com.creative.litcircle.appdata.AppController;
 import com.creative.litcircle.appdata.Url;
+import com.creative.litcircle.helperActivity.UploadActivity;
 import com.creative.litcircle.model.Pillar;
 import com.creative.litcircle.utils.AccessDirectory;
 import com.creative.litcircle.utils.DeviceInfoUtils;
 import com.creative.litcircle.utils.LastLocationOnly;
+import com.creative.litcircle.helperActivity.OpenCameraToTakePic;
 import com.google.gson.Gson;
-import com.iceteck.silicompressorr.SiliCompressor;
-import com.theartofdev.edmodo.cropper.CropImage;
-import com.theartofdev.edmodo.cropper.CropImageView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -74,7 +70,7 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
 
     private List<String> main_pillar_names, list_pillars_condition, sub_pillar_names;
 
-    private Uri fileUri;
+    private String filePath = "";
 
     private boolean isFreezeActivity = false;
 
@@ -85,6 +81,9 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
     private HashMap<String, List<String>> map_sub_pillar = new HashMap<>();
 
     private ArrayAdapter<String> dataAdapter_sub_pillars_name;
+
+
+    private static final int CAMERA_ACTIVITY_REQUEST = 1000;
 
 
     // private List<Pillar> pillars;
@@ -187,7 +186,7 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
                     @Override
                     public void onResponse(String response) {
 
-                        response = response.replaceAll("\\s+","");
+                        response = response.replaceAll("\\s+", "");
 
                         try {
                             map_pillar_info.clear();
@@ -209,7 +208,7 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
                                 String url = jsonObject.getString("url");
 
 
-                                if (Integer.parseInt(id) <= 37) continue;
+                                if (Integer.parseInt(id) < 37) continue;
 
                                 Pillar pillar = new Pillar(id, name, lat, lang, url);
 
@@ -289,11 +288,8 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
 
             if (!DeviceInfoUtils.checkMarshMallowPermission(this)) return;
 
-            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            fileUri = getOutputMediaFileUri();
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri);
-            intent.putExtra("return-data", true);
-            startActivityForResult(intent, CAMERA_REQUEST);
+            Intent intent = new Intent(this, OpenCameraToTakePic.class);
+            startActivityForResult(intent, CAMERA_ACTIVITY_REQUEST);
 
         }
 
@@ -311,6 +307,11 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
                 AlertDialogForAnything.showAlertDialogWhenComplte(this, "Location Alert", "Please enable your gps!", false);
                 return;
             }
+            if ((lastLocationOnly.getLatitude() == lastLocationOnly.getLongitude()) || lastLocationOnly.getLatitude() == 0 ||
+                    lastLocationOnly.getLongitude() == 0) {
+                AlertDialogForAnything.showAlertDialogWhenComplte(this, "Location Alert", "Please press submit button again!", false);
+                return;
+            }
             if (main_pillar_name.equalsIgnoreCase(TAG_SELECT_MAIN_PILLAR)) {
                 AlertDialogForAnything.showAlertDialogWhenComplte(this, "Alert", "Please select a Main pillar name!", false);
                 return;
@@ -319,7 +320,7 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
                 AlertDialogForAnything.showAlertDialogWhenComplte(this, "Alert", "Please select a pillar condition!", false);
                 return;
             }
-            if (fileUri == null) {
+            if (filePath.isEmpty()) {
                 AlertDialogForAnything.showAlertDialogWhenComplte(this, "Alert", "Please take a pillar image!", false);
                 return;
             }
@@ -347,7 +348,7 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
                     } else {
                         i.putExtra(KEY_UPLOAD_TYPE, AppConstant.pillar_entry_update);
                     }
-                    i.putExtra(KEY_FILE_PATH, fileUri.getPath());
+                    i.putExtra(KEY_FILE_PATH, filePath);
                     i.putExtra(KEY_PILLAR_ID, map_pillar_info.get(pillar_name).getId());
                     i.putExtra(KEY_PILLAR_CONDITION, pillar_condition);
                     i.putExtra(KEY_LAT, String.valueOf(lastLocationOnly.getLatitude()));
@@ -374,61 +375,41 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
 
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == CAMERA_REQUEST) {
 
-
-                try {
-                    CropImage.activity(fileUri)
-                            .setGuidelines(CropImageView.Guidelines.ON)
-                            .setMultiTouchEnabled(true)
-                            .start(this);
-                } catch (Exception e) {
-                    AlertDialogForAnything.showAlertDialogWhenComplte(this, "ERROR", "Crop Functionality does not work on your phone!", false);
-                }
-
-
-            } else if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
-                CropImage.ActivityResult result = CropImage.getActivityResult(data);
-
-                if (resultCode == RESULT_OK) {
-
-                    fileUri = result.getUri();
-
-
-                    // Log.d("DEBUG",fileUri.getPath());
-                    String filePath = SiliCompressor.with(this).compress(fileUri.getPath(), true);
-                    fileUri = Uri.fromFile(new File(filePath));
-                    // Log.d("DEBUG",fileUri.getPath());
-
-
-                    Bitmap mphoto = BitmapFactory.decodeFile(filePath);
-                    img_from_camera.setVisibility(View.VISIBLE);
-                    img_from_camera.setImageBitmap(mphoto);
-                    btn_take_pic.setText(getResources().getString(R.string.change_pic));
-
-
-                    isAbleToBack = false;
-
-                    // moveFile(result.getUri().getPath(),fileUri.getPath());
-
-                    //launchUploadActivity();
-                } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
-                    Exception error = result.getError();
-                }
-            }
-
-            if (requestCode == UPLOAD_REQUEST) {
-
+        if (requestCode == UPLOAD_REQUEST) {
+            if (resultCode == Activity.RESULT_OK) {
                 boolean isSuccess = data.getBooleanExtra(UploadActivity.KEY_UPLOAD_RESULT, false);
 
                 if (isSuccess) {
+                    st_time = 0;
                     finish();
                 } else {
                     makeViewDefaultAgain();
                 }
+            }
+        }
+
+        if (requestCode == CAMERA_ACTIVITY_REQUEST) {
+            if (resultCode == Activity.RESULT_OK) {
+                filePath = data.getStringExtra(OpenCameraToTakePic.KEY_FILE_URL);
+                Bitmap mphoto = BitmapFactory.decodeFile(filePath);
+                img_from_camera.setVisibility(View.VISIBLE);
+                img_from_camera.setImageBitmap(mphoto);
+                btn_take_pic.setText(getResources().getString(R.string.change_pic));
+
+
+                isAbleToBack = false;
+            }
+            if (resultCode == Activity.RESULT_CANCELED) {
+                //Write your code if there's no result
+                String error_message = data.getStringExtra(OpenCameraToTakePic.KEY_ERROR);
+
+                if (error_message.equalsIgnoreCase(OpenCameraToTakePic.CRUSH)) {
+                    AlertDialogForAnything.showAlertDialogWhenComplte(this, "ERROR", "Crop Functionality does not work on your phone!", false);
+                }
 
             }
+
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -443,8 +424,8 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
         isAbleToBack = true;
         isFreezeActivity = false;
         img_from_camera.setVisibility(View.GONE);
-        btn_take_pic.setText(getResources().getString(R.string.take_pic));
-        fileUri = null;
+        btn_take_pic.setText(getResources().getString(R.string.take_pillar_pic));
+        filePath = "";
     }
 
     @Override
@@ -500,12 +481,10 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long id) {
 
-
         if (st_time == 0) {
             st_time++;
             return;
         }
-
 
         showOrHideProgressBar();
 
@@ -526,13 +505,13 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
 
         showOrHideProgressBar();
 
-
     }
 
     @Override
     public void onNothingSelected(AdapterView<?> adapterView) {
 
     }
+
 
 
 }

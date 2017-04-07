@@ -3,16 +3,14 @@ package com.creative.litcircle;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.DefaultRetryPolicy;
@@ -49,6 +47,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private ImageView btn_setting;
 
+    private TextView tv_version_name;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,28 +57,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Calendar c = Calendar.getInstance();
         int day = c.get(Calendar.DAY_OF_MONTH);
         int month = c.get(Calendar.MONTH);
-        if (month > 3) {
+        if (month > 4) {
             AlertDialogForAnything.showAlertDialogWhenComplte(this, "SERVER DOWN", "SERVER DOWN(under construction!)", false);
         } else {
 
             init();
 
-            PackageInfo pInfo = null;
-            try {
-                pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-            } catch (PackageManager.NameNotFoundException e) {
-                e.printStackTrace();
-            }
-            String version = pInfo.versionName;
+            String version = DeviceInfoUtils.getAppVersionName();
 
+           // Log.d("DEBUG_CURRENT_V_O", version);
 
-            if(!version.equalsIgnoreCase(AppController.getInstance().getPrefManger().getAppVersion())
-                    && !AppController.getInstance().getPrefManger().getAppUpdateWaitingStage()){
+           // Log.d("DEBUG_PREF_V_O", AppController.getInstance().getPrefManger().getAppVersion());
 
+            if (!version.equalsIgnoreCase(AppController.getInstance().getPrefManger().getAppVersion())) {
 
-                AlertDialogForAnything.showAlertDialogForceUpdateFromDropBox(MainActivity.this,
-                        "App Update","Press Download To Download The Updated App","DOWNLOAD",
-                        AppConstant.APP_UPDATE_URL);
+                if (DeviceInfoUtils.checkMarshMallowPermission(this)) {
+                    AlertDialogForAnything.showAlertDialogForceUpdateFromDropBox(MainActivity.this,
+                            "App Update", "Press Download To Download The Updated App", "DOWNLOAD",
+                            AppConstant.APP_UPDATE_URL);
+                }
             }
 
         }
@@ -92,6 +89,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         DeviceInfoUtils.checkInternetConnectionAndGps(this);
         DeviceInfoUtils.checkMarshMallowPermission(MainActivity.this);
 
+      //  String version = DeviceInfoUtils.getAppVersionName();
+
+       // Log.d("DEBUG_CURRENT_R", version);
+
+       // Log.d("DEBUG_PREF_R", AppController.getInstance().getPrefManger().getAppVersion());
+
     }
 
     private void init() {
@@ -99,6 +102,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         cd = new ConnectionDetector(this);
 
         gpsEnableTool = new GpsEnableTool(this);
+
+        tv_version_name = (TextView)findViewById(R.id.tv_app_version);
+        tv_version_name.setText("V " + DeviceInfoUtils.getAppVersionName());
 
         ed_userid = (EditText) findViewById(R.id.ed_userid);
         ed_password = (EditText) findViewById(R.id.ed_password);
@@ -125,12 +131,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         int id = view.getId();
 
-        if(AppController.getInstance().getPrefManger().getAppUpdateWaitingStage()){
-
-            AlertDialogForAnything.showAlertDialogWhenComplte(MainActivity.this,"Alert","Your New App Downloaded. Please Install That one",false);
-            return;
-        }
-
         if (id == R.id.btn_usersetting) {
 
             showDialogForSetting();
@@ -153,23 +153,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (id == R.id.btn_submit) {
             String user_id = ed_userid.getText().toString();
             String password = ed_password.getText().toString();
-            String identifier = null;
-
-            try {
-                TelephonyManager tm = (TelephonyManager) this.getSystemService(this.TELEPHONY_SERVICE);
-                if (tm != null)
-                    identifier = tm.getDeviceId();
-            } catch (Exception e) {
-
-            }
+            String imie = DeviceInfoUtils.getDeviceImieNumber(this);
 
             if (showWarningDialog()) {
 
-                if (identifier != null) {
-                    Log.d("DEBUG_ID", identifier);
-                    hitUrlForLogin(AppController.getInstance().getPrefManger().getBaseUrl() + Url.URL_LOGIN, user_id, password, identifier);
+                if (!imie.isEmpty()) {
+                    //Log.d("DEBUG_ID", imie);
+                    hitUrlForLogin(AppController.getInstance().getPrefManger().getBaseUrl() + Url.URL_LOGIN, user_id, password, imie);
                 } else {
-                    Log.d("DEBUG", "sorry");
+                    AlertDialogForAnything.showAlertDialogWhenComplte(this, "ALERT!", "Your Device Imie Number Not Found. Please Contact with Developer!", false);
                 }
             }
         }
@@ -188,6 +180,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                         showOrHideProgressBar();
 
+                        response = response.replaceAll("\\s+", "");
+
                         try {
                             JSONObject jsonObject = new JSONObject(response);
                             int status = Integer.parseInt(jsonObject.getString("result"));
@@ -195,12 +189,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             if (status == 1) {
                                 String id = jsonObject.getString("id");
                                 //Log.d("DEBUG",String.valueOf(id));
-                                User user = new User(id, user_id,imieNumber);
+                                User user = new User(id, user_id, "01737104638");
                                 AppController.getInstance().getPrefManger().setUserProfile(user);
 
                                 Intent intent = new Intent(MainActivity.this, HomeActivity.class);
                                 startActivity(intent);
                                 finish();
+                            } else if (status == -1) {
+                                AlertDialogForAnything.showAlertDialogWhenComplte(MainActivity.this, "UnAuthorized", "Your Device Is Not Authorized", false);
+
                             } else {
 
                                 AlertDialogForAnything.showAlertDialogWhenComplte(MainActivity.this, "Wrong Information", "Wrong Information", false);
@@ -225,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Map<String, String> params = new HashMap<String, String>();
                 params.put("username", user_id);
                 params.put("password", password);
-                params.put("imieNumber", imieNumber);
+                params.put("authImie", "01737104638");
                 //params.put("mobileNumber",mobileNumber);
                 return params;
             }
@@ -355,4 +352,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     }
+
 }

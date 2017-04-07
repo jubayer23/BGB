@@ -1,14 +1,12 @@
 package com.creative.litcircle.alertbanner;
 
 import android.app.AlertDialog;
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
-import android.util.Log;
 
-import com.creative.litcircle.appdata.AppController;
+import com.creative.litcircle.utils.UpdateApp;
 
 
 public class AlertDialogForAnything {
@@ -76,20 +74,11 @@ public class AlertDialogForAnything {
 
 				if (appURL.length() > 0) {
 
-
 					String urlString=appURL;
-					Intent intent=new Intent(Intent.ACTION_VIEW,Uri.parse(urlString));
-					intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-					intent.setPackage("com.android.chrome");
-					try {
-						AppController.getInstance().getPrefManger().setAppUpdateWaitingStage(true);
-						context.startActivity(intent);
 
-					} catch (ActivityNotFoundException ex) {
-						// Chrome browser presumably not installed so allow user to choose instead
-						intent.setPackage(null);
-						context.startActivity(intent);
-					}
+					UpdateApp atualizaApp = new UpdateApp();
+					atualizaApp.setContext(context);
+					atualizaApp.execute(urlString);
 
 				}
 			}

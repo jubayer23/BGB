@@ -17,6 +17,7 @@ import com.creative.litcircle.appdata.AppConstant;
 import com.creative.litcircle.appdata.AppController;
 import com.creative.litcircle.appdata.Url;
 import com.creative.litcircle.utils.ConnectionDetector;
+import com.creative.litcircle.utils.DeviceInfoUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -72,32 +73,37 @@ public class SplashActivity extends AppCompatActivity {
                     public void onResponse(String response) {
 
 
+
+                      // response = "{\n" +
+                      //         "\"version\": \"1.1\",\n" +
+                      //         "\"url\": \"https://www.dropbox.com/s/jw798ao77hdi0tq/app-debug.apk?dl=1\"\n" +
+                      //         "}";
+
                         try {
                             JSONObject jsonObject = new JSONObject(response);
-                            String version = jsonObject.getString("version");
+                            String server_version = jsonObject.getString("version");
 
-                            PackageInfo pInfo = null;
-                            try {
-                                pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-                            } catch (PackageManager.NameNotFoundException e) {
-                                e.printStackTrace();
-                            }
-                            String current_version = pInfo.versionName;
+                            String current_version = DeviceInfoUtils.getAppVersionName();
 
-                            if (!version.equalsIgnoreCase(current_version)) {
+                           // Log.d("DEBUG_S_CUR_V", current_version);
 
+                           // Log.d("DEBUG_S_SER_V", server_version);
 
-                                // Log.d("DEBUG","its in here");
-                                AppController.getInstance().getPrefManger().setAppVersion(version);
+                           // Log.d("DEBUG_S_PREF_V", AppController.getInstance().getPrefManger().getAppVersion());
+
+                            AppController.getInstance().getPrefManger().setAppVersion(server_version);
+                            if (!server_version.equalsIgnoreCase(current_version)) {
+                                 //Log.d("DEBUG","its in here");
 
                                 AppConstant.APP_UPDATE_URL = jsonObject.getString("url");
 
-                                //AlertDialogForAnything.showAlertDialogForceUpdateFromDropBox(MainActivity.this,
-                                //        "App Update","Press Download To Download The Updated App","DOWNLOAD",
-                                //       jsonObject.getString("url"));
+                                if(AppConstant.isForceLogout){
+                                    AppController.getInstance().getPrefManger().setUserProfile("");
+                                }
+
                             } else {
                                 //Log.d("DEBUG","waiting stage make false");
-                                AppController.getInstance().getPrefManger().setAppUpdateWaitingStage(false);
+                               // AppController.getInstance().getPrefManger().setAppUpdateWaitingStage(false);
                             }
 
                         } catch (JSONException e) {
@@ -128,7 +134,7 @@ public class SplashActivity extends AppCompatActivity {
 
 
     private void proceedToMainApp() {
-        if (AppController.getInstance().getPrefManger().getUserProfile() != null) {
+        if (AppController.getInstance().getPrefManger().getUserProfile() != null ) {
             Intent intent = new Intent(SplashActivity.this, HomeActivity.class);
             startActivity(intent);
             finish();

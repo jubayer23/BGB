@@ -1,4 +1,4 @@
-package com.creative.litcircle;
+package com.creative.litcircle.helperActivity;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -6,13 +6,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.creative.litcircle.NewPillarsEntry;
+import com.creative.litcircle.R;
 import com.creative.litcircle.appdata.AppConstant;
 import com.creative.litcircle.appdata.AppController;
 import com.creative.litcircle.appdata.Url;
@@ -53,18 +54,11 @@ public class UploadActivity extends AppCompatActivity implements UploadStatusDel
         String filePath = i.getStringExtra(NewPillarsEntry.KEY_FILE_PATH);
         String pillar_id = i.getStringExtra(NewPillarsEntry.KEY_PILLAR_ID);
         String pillar_condition = i.getStringExtra(NewPillarsEntry.KEY_PILLAR_CONDITION);
+        String lat = i.getStringExtra(NewPillarsEntry.KEY_LAT);
+        String lng = i.getStringExtra(NewPillarsEntry.KEY_LNG);
 
-        if (upload_type.equalsIgnoreCase(AppConstant.pillar_entry_new)) {
 
-            String lat = i.getStringExtra(NewPillarsEntry.KEY_LAT);
-            String lng = i.getStringExtra(NewPillarsEntry.KEY_LNG);
-            startUploadingToServerNewEntry(filePath, pillar_id, pillar_condition, lat, lng, AppConstant.pillar_entry_new);
-
-        } else {
-
-            startUploadingToServerUpdate(filePath, pillar_id, pillar_condition, AppConstant.pillar_entry_update);
-
-        }
+        startUploadingToServer(filePath, pillar_id, pillar_condition, lat, lng, upload_type);
 
 
         btn_upload_cancel.setOnClickListener(new View.OnClickListener() {
@@ -84,11 +78,11 @@ public class UploadActivity extends AppCompatActivity implements UploadStatusDel
         tv_upload_progress = (TextView) findViewById(R.id.tv_progress);
         tv_upload_progress.setText("0%");
         tv_upload_title = (TextView) findViewById(R.id.tv_upload_title);
-        tv_upload_title.setText("Creating New Pillar......");
+       // tv_upload_title.setText("Creating New Pillar......");
     }
 
-    private void startUploadingToServerNewEntry(String path, String pillar_id, String pillar_condition, String lat, String lng,
-                                                String pillar_entry_code) {
+    private void startUploadingToServer(String path, String pillar_id, String pillar_condition, String lat, String lng,
+                                        String pillar_entry_code) {
         //Uploading code
         //upload_progressbar.setVisibility(View.VISIBLE);
 
@@ -119,35 +113,6 @@ public class UploadActivity extends AppCompatActivity implements UploadStatusDel
 
     }
 
-    private void startUploadingToServerUpdate(String path, String pillar_id, String pillar_condition,
-                                              String pillar_entry_code) {
-        //Uploading code
-        //upload_progressbar.setVisibility(View.VISIBLE);
-
-
-        try {
-            //String uploadId = UUID.randomUUID().toString();
-            //Creating a multi part request
-            MultipartUploadRequest req = new MultipartUploadRequest(this,
-                    AppController.getInstance().getPrefManger().getBaseUrl() + Url.URL_PILLAR_UPDATE)
-                    .addFileToUpload(path, "file") //Adding file
-                    .addParameter("id", pillar_id)
-                    .addParameter("situation", pillar_condition)
-                    .addParameter("newEntry", pillar_entry_code)
-                    .addParameter("authImie", AppController.getInstance().getPrefManger().getUserProfile().getImieNumber())
-                    .addParameter("soldierId", AppController.getInstance().getPrefManger().getUserProfile().getId())
-                    .setNotificationConfig(new UploadNotificationConfig())
-                    .setAutoDeleteFilesAfterSuccessfulUpload(true)
-                    .setMaxRetries(2); //Starting the upload
-
-
-            uploadId = req.setDelegate(this).startUpload();
-
-        } catch (Exception exc) {
-            Toast.makeText(this, exc.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-
-    }
     @Override
     public void onProgress(Context context, UploadInfo uploadInfo) {
         upload_progressbar.setProgress(uploadInfo.getProgressPercent());
@@ -172,7 +137,7 @@ public class UploadActivity extends AppCompatActivity implements UploadStatusDel
 
             if (result.equals("1")) {
                 showAlertDialog(SUCCESS_CODE);
-            }else{
+            } else {
                 showAlertDialog(ERROR_CODE);
             }
         } catch (JSONException e) {

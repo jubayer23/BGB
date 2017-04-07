@@ -98,19 +98,19 @@ public class GPSTracker extends Service implements LocationListener {
                             MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
                     Log.d("GPS", "GPS Enabled");
                     if (locationManager != null) {
-                        location = locationManager
+                        this.location = locationManager
                                 .getLastKnownLocation(LocationManager.GPS_PROVIDER);
                     }
                 }
 
                 if (isNetworkEnabled) {
-                    if (location == null) {
+                    if (this.location == null) {
                         locationManager.requestLocationUpdates(
                                 LocationManager.NETWORK_PROVIDER,
                                 MIN_TIME_BW_UPDATES,
                                 MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
                         if (locationManager != null) {
-                            location = locationManager
+                            this.location = locationManager
                                     .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                         }
                         Log.d("Network", "Network Enabled");
@@ -123,7 +123,7 @@ public class GPSTracker extends Service implements LocationListener {
             e.printStackTrace();
         }
 
-        return location;
+        return this.location;
     }
 
     /**
@@ -143,8 +143,8 @@ public class GPSTracker extends Service implements LocationListener {
      * Function to get latitude
      */
     public double getLatitude() {
-        if (location != null) {
-            latitude = location.getLatitude();
+        if (this.location != null) {
+            latitude = this.location.getLatitude();
         }
 
         // return latitude
@@ -155,8 +155,8 @@ public class GPSTracker extends Service implements LocationListener {
      * Function to get longitude
      */
     public double getLongitude() {
-        if (location != null) {
-            longitude = location.getLongitude();
+        if (this.location != null) {
+            longitude = this.location.getLongitude();
         }
 
         // return longitude
@@ -176,9 +176,15 @@ public class GPSTracker extends Service implements LocationListener {
     @Override
     public void onLocationChanged(Location location) {
 
+        Log.d("DEBUG_ON_CHANG_1",String.valueOf(this.location.getLatitude()));
+        Log.d("DEBUG_ON_CHANG_1",String.valueOf(this.location.getLongitude()));
+
         if (isBetterLocation(location, previousBestLocation)){
             previousBestLocation = location;
             this.location = location;
+
+            Log.d("DEBUG_ON_CHANG_2",String.valueOf(this.location.getLatitude()));
+            Log.d("DEBUG_ON_CHANG_2",String.valueOf(this.location.getLongitude()));
         }
 
 
@@ -205,15 +211,15 @@ public class GPSTracker extends Service implements LocationListener {
 
 
 
-    protected boolean isBetterLocation(Location location, Location currentBestLocation) {
+    protected boolean isBetterLocation(Location location, Location previousBestLocation) {
 
-        if (currentBestLocation == null) {
+        if (previousBestLocation == null) {
             // A new location is always better than no location
             return true;
         }
 
         // Check whether the new location fix is newer or older
-        long timeDelta = location.getTime() - currentBestLocation.getTime();
+        long timeDelta = location.getTime() - previousBestLocation.getTime();
         boolean isSignificantlyNewer = timeDelta > TWO_MINUTES;
         boolean isSignificantlyOlder = timeDelta < -TWO_MINUTES;
         boolean isNewer = timeDelta > 0;
@@ -228,14 +234,14 @@ public class GPSTracker extends Service implements LocationListener {
         }
 
         // Check whether the new location fix is more or less accurate
-        int accuracyDelta = (int) (location.getAccuracy() - currentBestLocation.getAccuracy());
+        int accuracyDelta = (int) (location.getAccuracy() - previousBestLocation.getAccuracy());
         boolean isLessAccurate = accuracyDelta > 0;
         boolean isMoreAccurate = accuracyDelta < 0;
         boolean isSignificantlyLessAccurate = accuracyDelta > 200;
 
         // Check if the old and new location are from the same provider
         boolean isFromSameProvider = isSameProvider(location.getProvider(),
-                currentBestLocation.getProvider());
+                previousBestLocation.getProvider());
 
         // Determine location quality using a combination of timeliness and accuracy
         if (isMoreAccurate) {
@@ -267,7 +273,7 @@ public class GPSTracker extends Service implements LocationListener {
         }
         if (locationManager != null) {
             locationManager.removeUpdates(GPSTracker.this);
-            location = null;
+            this.location = null;
             locationManager = null;
         }
     }

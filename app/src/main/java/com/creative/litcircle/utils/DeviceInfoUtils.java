@@ -4,11 +4,16 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.telephony.TelephonyManager;
 
+import com.creative.litcircle.BuildConfig;
+import com.creative.litcircle.MainActivity;
 import com.creative.litcircle.alertbanner.AlertDialogForAnything;
+import com.creative.litcircle.appdata.AppConstant;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -48,6 +53,13 @@ public class DeviceInfoUtils {
     public  static String getPhoneNumber(Context context){
         TelephonyManager tMgr = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
         return tMgr.getLine1Number();
+
+    }
+
+
+    public static String getAppVersionName(){
+
+        return BuildConfig.VERSION_NAME;
 
     }
 
@@ -145,4 +157,15 @@ public class DeviceInfoUtils {
     }
 
 
+    public static String getDeviceImieNumber(Context context) {
+        String imie = "";
+        try {
+            TelephonyManager tm = (TelephonyManager) context.getSystemService(context.TELEPHONY_SERVICE);
+            if (tm != null)
+                imie = tm.getDeviceId();
+        } catch (Exception e) {
+
+        }
+        return imie;
+    }
 }

@@ -42,22 +42,22 @@ public class Drawer_list_adapter extends BaseExpandableListAdapter {
     public int getChildrenCount(int groupPosition) {
 
         if (this._listDataHeader == null) {
-            Log.e("Debug", "mListDataHeader is null.");
+           // Log.e("Debug", "mListDataHeader is null.");
             return 0;
         } else if (groupPosition < 0 || groupPosition >= this._listDataHeader.size()) {
-            Log.e("Debug", "position invalid: " + groupPosition);
+          //  Log.e("Debug", "position invalid: " + groupPosition);
             return 0;
         } else if (this._listDataHeader.get(groupPosition) == null) {
-            Log.e("Debug", "Value of mListDataHeader at position is null: " + groupPosition);
+         //   Log.e("Debug", "Value of mListDataHeader at position is null: " + groupPosition);
             return 0;
         } else if (this._listDataChild == null) {
-            Log.e("Debug", "mListDataChild is null.");
+          //  Log.e("Debug", "mListDataChild is null.");
             return 0;
         } else if (!this._listDataChild.containsKey(this._listDataHeader.get(groupPosition))) {
-            Log.e("Debug", "No key: " + this._listDataHeader.get(groupPosition));
+          //  Log.e("Debug", "No key: " + this._listDataHeader.get(groupPosition));
             return 0;
         } else if (this._listDataChild.get(this._listDataHeader.get(groupPosition)) == null) {
-            Log.e("Debug", "Value at key is null: " + this._listDataHeader.get(groupPosition));
+          //  Log.e("Debug", "Value at key is null: " + this._listDataHeader.get(groupPosition));
             return 0;
         } else {
             return this._listDataChild.get(this._listDataHeader.get(groupPosition)).size();

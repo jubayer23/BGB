@@ -94,7 +94,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="25dp"
             android:background="@drawable/btn_common_tranparent"
-            android:text="@string/take_pic"
+            android:text="@string/take_pillar_pic"
             android:textColor="@color/white"
             android:textSize="20sp"
             android:textStyle="bold" />
