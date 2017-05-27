@@ -10,6 +10,7 @@ import com.creative.litcircle.appdata.AppConstant;
 import com.creative.litcircle.appdata.Url;
 import com.creative.litcircle.model.User;
 import com.creative.litcircle.utils.DeviceInfoUtils;
+import com.google.android.gms.common.api.BooleanResult;
 import com.google.gson.Gson;
 
 
@@ -42,7 +43,13 @@ public class PrefManager {
 
     private static final String KEY_PETROL_ID = "patrol_id";
 
+    private static final String KEY_USER_LAT = "user_lat";
+    private static final String KEY_USER_LANG = "user_lng";
+
+
     private static final String KEY_BASE_URL = "base_url";
+
+    private static final String KEY_APP_ALREADY_INSTALLED = "app_first_time_install";
 
 
     public PrefManager(Context context) {
@@ -136,6 +143,38 @@ public class PrefManager {
 
     public int getGpsInterval() {
         return pref.getInt(KEY_GPS_INTERVAL, Integer.parseInt(AppConstant.gps_interval[1]));
+    }
+
+
+    public void setUserLat(String value) {
+        editor = pref.edit();
+        editor.putString(KEY_USER_LAT, value);
+        editor.commit();
+    }
+
+    public String getUserLat() {
+        return pref.getString(KEY_USER_LAT, "0");
+    }
+
+    public void setUserLang(String value) {
+        editor = pref.edit();
+        editor.putString(KEY_USER_LANG, value);
+        editor.commit();
+    }
+
+    public String getUserLang() {
+        return pref.getString(KEY_USER_LANG, "0");
+    }
+
+
+    public void setAppFirstTimeInstall(boolean value) {
+        editor = pref.edit();
+        editor.putBoolean(KEY_APP_ALREADY_INSTALLED, value);
+        editor.commit();
+    }
+
+    public Boolean getAppFirstTimeInstall() {
+        return pref.getBoolean(KEY_APP_ALREADY_INSTALLED, true);
     }
 
 

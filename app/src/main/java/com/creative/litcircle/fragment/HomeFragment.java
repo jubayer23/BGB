@@ -49,6 +49,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
 
     private ConnectionDetector cd;
 
+    private static int how_many_time_user_press_start = 0;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -56,6 +57,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 false);
 
         String version = DeviceInfoUtils.getAppVersionName();
+
+        how_many_time_user_press_start = 0;
 
 
         if (!version.equalsIgnoreCase(AppController.getInstance().getPrefManger().getAppVersion())) {
@@ -134,25 +137,42 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
             return;
         }
 
-        lastLocationOnly = new LastLocationOnly(getActivity());
-
-        double loc_lat = (double) Math.round(lastLocationOnly.getLatitude() * 100000d) / 100000d;
-        double loc_lng = (double) Math.round(lastLocationOnly.getLongitude() * 100000d) / 100000d;
-
-        if ((loc_lat == loc_lng) || (loc_lat == 0) || (loc_lng == 0)) {
-            AlertDialogForAnything.showAlertDialogWhenComplte(getActivity(), "GPS problem",
-                    "Please press start patrolling again!", false);
-            //stop executing code by return
-            return;
-        }
-
-        final String user_lat = String.valueOf(loc_lat);
-        final String user_lang = String.valueOf(loc_lng);
-
-       // Log.d("DEBUG_LAT_S_OR_T", String.valueOf(loc_lat));
-       // Log.d("DEBUG_LAT_S_OR_T", String.valueOf(loc_lng));
+        // Log.d("DEBUG_LAT_S_OR_T", String.valueOf(loc_lat));
+        // Log.d("DEBUG_LAT_S_OR_T", String.valueOf(loc_lng));
 
         if (id == R.id.btn_startpetroling) {
+
+            //showOrHideProgressBar();
+
+
+            double loc_lat = lastLocationOnly.getLatitude();
+            double loc_lng = lastLocationOnly.getLongitude();
+
+           // loc_lat = (double) Math.round(GPSTracker.location.getLatitude() * 100000d) / 100000d;
+           // loc_lng = (double) Math.round(GPSTracker.location.getLongitude() * 100000d) / 100000d;
+
+            if ((loc_lat == loc_lng) || (loc_lat == 0) || (loc_lng == 0)) {
+
+                if(how_many_time_user_press_start > 3){
+                    how_many_time_user_press_start = 0;
+                }else{
+
+                    how_many_time_user_press_start++;
+
+                    AlertDialogForAnything.showAlertDialogWhenComplte(getActivity(), "GPS problem",
+                            "Please Restart Your Gps and press the \"START PATROLLING\" button again!", false);
+                    //stop executing code by return
+                    return;
+                }
+            }
+
+            how_many_time_user_press_start = 0;
+
+            loc_lat = (double) Math.round(lastLocationOnly.getLatitude() * 100000d) / 100000d;
+            loc_lng = (double) Math.round(lastLocationOnly.getLongitude() * 100000d) / 100000d;
+
+            String user_lat = String.valueOf(loc_lat);
+            String user_lang = String.valueOf(loc_lng);
 
             hitUrlForStartGps(AppController.getInstance().getPrefManger().getBaseUrl() + Url.URL_SOLDIER_LOCATION,
                     AppController.getInstance().getPrefManger().getUserProfile().getId(),
@@ -160,7 +180,34 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
 
         }
 
+
         if (id == R.id.btn_stoppatrolling) {
+
+           // lastLocationOnly = new LastLocationOnly(getActivity());
+
+            double loc_lat = (double) Math.round(lastLocationOnly.getLatitude() * 100000d) / 100000d;
+            double loc_lng = (double) Math.round(lastLocationOnly.getLongitude() * 100000d) / 100000d;
+
+            final String user_lat;
+            final String user_lang;
+
+            if ((loc_lat == loc_lng) || (loc_lat == 0) || (loc_lng == 0)) {
+                //stop executing code by return
+                if (AppController.getInstance().getPrefManger().getUserLat().equalsIgnoreCase("0") ||
+                        AppController.getInstance().getPrefManger().getUserLang().equalsIgnoreCase("0")) {
+                    AlertDialogForAnything.showAlertDialogWhenComplte(getActivity(), "GPS problem",
+                            "Please Restart GPS then press the \"STOP PATROLLING\" button again!", false);
+                    return;
+                } else {
+                    user_lat = AppController.getInstance().getPrefManger().getUserLat();
+                    user_lang = AppController.getInstance().getPrefManger().getUserLang();
+                }
+
+            } else {
+                user_lat = String.valueOf(loc_lat);
+                user_lang = String.valueOf(loc_lng);
+
+            }
 
 
             AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
@@ -330,6 +377,8 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                                 btn_new_pillar_entry.setVisibility(View.GONE);
 
                                 AppController.getInstance().getPrefManger().setPetrolId("");
+                                AppController.getInstance().getPrefManger().setUserLat("0");
+                                AppController.getInstance().getPrefManger().setUserLat("0");
                             } else {
                                 AlertDialogForAnything.showAlertDialogWhenComplte(getActivity(), "Alert", "There is something wrong when stop patrolling", false);
                             }

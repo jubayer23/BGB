@@ -20,7 +20,7 @@ public class AppConstant {
     public static final String[] gps_interval = {"5","20", "40", "50", "60", "300", "900", "1800", "3600"};
 
 
-    public static final String[] mission_type = {"Smuggling", "Human Traffic", "VOP Interconnection" ,"Miseniuous" ,"Others"};
+    public static final String[] mission_type = {"Smuggling", "Human Trafficking", "BOP Internal" ,"Miscellaneous" ,"Others"};
 
 
     public static final String pillar_entry_new = "1";
@@ -29,5 +29,5 @@ public class AppConstant {
 
     public static final String ADMIN_PASSWORD = "1127";
     public static String APP_UPDATE_URL = "";
-    public static boolean isForceLogout = true;
+    public static boolean isForceLogout = false;
 }

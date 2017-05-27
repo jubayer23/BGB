@@ -33,7 +33,7 @@ public class SpeacialOps extends AppCompatActivity implements View.OnClickListen
     public static final String KEY_LAT = "lat";
     public static final String KEY_LNG = "lng";
     public static final int UPLOAD_REQUEST = 3333;
-    private static final String TAG_SELECT_MISSION = "Select Mission Type";
+    private static final String TAG_SELECT_MISSION = "Select Type";
     public static final String KEY_PILLAR_CONDITION = "pillar_condition";
     public static final String KEY_PILLAR_ID = "pillar_name";
     public static final String KEY_UPLOAD_TYPE = "upload_type";

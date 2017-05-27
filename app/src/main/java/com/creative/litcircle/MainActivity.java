@@ -189,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             if (status == 1) {
                                 String id = jsonObject.getString("id");
                                 //Log.d("DEBUG",String.valueOf(id));
-                                User user = new User(id, user_id, "01737104638");
+                                User user = new User(id, user_id, imieNumber);
                                 AppController.getInstance().getPrefManger().setUserProfile(user);
 
                                 Intent intent = new Intent(MainActivity.this, HomeActivity.class);
@@ -222,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Map<String, String> params = new HashMap<String, String>();
                 params.put("username", user_id);
                 params.put("password", password);
-                params.put("authImie", "01737104638");
+                params.put("authImie", imieNumber);
                 //params.put("mobileNumber",mobileNumber);
                 return params;
             }

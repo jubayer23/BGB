@@ -39,6 +39,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -118,6 +120,22 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
             main_pillar_names.add(String.valueOf(entry.getKey()));
 
         }
+        Collections.sort(main_pillar_names, new Comparator<String>()
+        {
+            public int compare(String o1, String o2)
+            {
+                if (o1.equals(TAG_SELECT_MAIN_PILLAR))
+                    return -1;
+                if (o2.equals(TAG_SELECT_MAIN_PILLAR))
+                    return 1;
+                if (o1.equals("General"))
+                    return -1;
+                if (o2.equals("General"))
+                    return 1;
+                return o1.compareTo(o2);
+            }
+        });
+        //Collections.sort(main_pillar_names);
         ArrayAdapter<String> dataAdapter_pillars_name = new ArrayAdapter<String>
                 (this, R.layout.spinner_item, main_pillar_names);
 
@@ -188,6 +206,8 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
 
                         response = response.replaceAll("\\s+", "");
 
+                        int count = 0;
+
                         try {
                             map_pillar_info.clear();
                             map_sub_pillar.clear();
@@ -196,7 +216,7 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
                             // pillars.clear();
 
                             JSONArray jsonArray = new JSONArray(response);
-                            int count = 0;
+
 
                             for (int i = 0; i < jsonArray.length(); i++) {
                                 JSONObject jsonObject = jsonArray.getJSONObject(i);
@@ -208,7 +228,7 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
                                 String url = jsonObject.getString("url");
 
 
-                                if (Integer.parseInt(id) < 37) continue;
+                                if (Integer.parseInt(id) <= 37) continue;
 
                                 Pillar pillar = new Pillar(id, name, lat, lang, url);
 
@@ -246,12 +266,17 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
 
                         showOrHideProgressBar();
 
+
+                        AlertDialogForAnything.showAlertDialogWhenComplte(NewPillarsEntry.this,"SERVER PROBLEM","SERVER DOWN. Please Contact With Server Management!",false);
+
                     }
                 }, new com.android.volley.Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
 
                 showOrHideProgressBar();
+
+                AlertDialogForAnything.showAlertDialogWhenComplte(NewPillarsEntry.this,"SERVER PROBLEM","SERVER DOWN. Please Contact With Server Management!",false);
 
             }
         }) {

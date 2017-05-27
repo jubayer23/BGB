@@ -48,7 +48,7 @@
             android:layout_margin="20dp"
             android:visibility="gone"
             android:background="@drawable/btn_selector_start_patrolling"
-            android:text="New Pillamar Entry"
+            android:text="Pillar Update"
             android:textColor="@color/white"
             android:textSize="30sp"
             android:textStyle="bold" />

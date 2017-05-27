@@ -2,10 +2,8 @@ package com.creative.litcircle.utils;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Service;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -13,12 +11,9 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.PowerManager;
-import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.widget.Toast;
 
 public class GPSTracker extends Service implements LocationListener {
 
@@ -176,15 +171,15 @@ public class GPSTracker extends Service implements LocationListener {
     @Override
     public void onLocationChanged(Location location) {
 
-        Log.d("DEBUG_ON_CHANG_1",String.valueOf(this.location.getLatitude()));
-        Log.d("DEBUG_ON_CHANG_1",String.valueOf(this.location.getLongitude()));
+       // Log.d("DEBUG_ON_CHANG_1",String.valueOf(this.location.getLatitude()));
+       // Log.d("DEBUG_ON_CHANG_1",String.valueOf(this.location.getLongitude()));
 
         if (isBetterLocation(location, previousBestLocation)){
             previousBestLocation = location;
             this.location = location;
 
-            Log.d("DEBUG_ON_CHANG_2",String.valueOf(this.location.getLatitude()));
-            Log.d("DEBUG_ON_CHANG_2",String.valueOf(this.location.getLongitude()));
+           // Log.d("DEBUG_ON_CHANG_2",String.valueOf(this.location.getLatitude()));
+           // Log.d("DEBUG_ON_CHANG_2",String.valueOf(this.location.getLongitude()));
         }
 
 

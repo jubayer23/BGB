@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Handler;
+import android.os.Parcelable;
 import android.provider.SyncStateContract;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -18,6 +19,7 @@ import com.creative.litcircle.appdata.AppController;
 import com.creative.litcircle.appdata.Url;
 import com.creative.litcircle.utils.ConnectionDetector;
 import com.creative.litcircle.utils.DeviceInfoUtils;
+import com.creative.litcircle.utils.LastLocationOnly;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -36,18 +38,18 @@ public class SplashActivity extends AppCompatActivity {
         ConnectionDetector cd = new ConnectionDetector(this);
 
         if (cd.isConnectingToInternet()) {
-
             hitUrlForCheckAppUpdate(AppController.getInstance().getPrefManger().getBaseUrl() + Url.URL_CHECK_APP_UPDATE);
-
         } else {
             this.mHandler.postDelayed(this.mPendingLauncherRunnable, 3000L);
         }
+
+
+
     }
 
     private final Runnable mPendingLauncherRunnable = new Runnable() {
         public void run() {
-            Intent localIntent = new Intent(SplashActivity.this, MainActivity.class);
-            startActivity(localIntent);
+            proceedToMainApp();
             finish();
         }
     };
@@ -134,6 +136,18 @@ public class SplashActivity extends AppCompatActivity {
 
 
     private void proceedToMainApp() {
+
+
+        if(AppController.getInstance().getPrefManger().getAppFirstTimeInstall()){
+            AppController.getInstance().getPrefManger().setAppFirstTimeInstall(false);
+            try{
+                createShortCut();
+            }catch (Exception e ){
+
+            }
+        }
+
+
         if (AppController.getInstance().getPrefManger().getUserProfile() != null ) {
             Intent intent = new Intent(SplashActivity.this, HomeActivity.class);
             startActivity(intent);
@@ -143,6 +157,19 @@ public class SplashActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         }
+
+
+
+    }
+
+    private void createShortCut(){
+        Intent shortcutintent = new Intent("com.android.launcher.action.INSTALL_SHORTCUT");
+        shortcutintent.putExtra("duplicate", false);
+        shortcutintent.putExtra(Intent.EXTRA_SHORTCUT_NAME, getString(R.string.app_name));
+        Parcelable icon = Intent.ShortcutIconResource.fromContext(getApplicationContext(), R.mipmap.ic_launcher);
+        shortcutintent.putExtra(Intent.EXTRA_SHORTCUT_ICON_RESOURCE, icon);
+        shortcutintent.putExtra(Intent.EXTRA_SHORTCUT_INTENT, new Intent(getApplicationContext(), SplashActivity.class));
+        sendBroadcast(shortcutintent);
     }
 
     @Override

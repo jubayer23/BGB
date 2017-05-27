@@ -103,7 +103,7 @@ public class GpsService extends Service {
                                 Location locaion = GPSTracker.location;
 
                                 if (locaion == null) {
-                                    Log.d("DEBUG_ALERT","location become null");
+                                 //   Log.d("DEBUG_ALERT","location become null");
                                     stopService(new Intent(_context, GPSTracker.class));
                                     startService(new Intent(_context, GPSTracker.class));
                                     return;
@@ -114,16 +114,20 @@ public class GpsService extends Service {
                                 locaion.setLatitude(loc_lat);
                                 locaion.setLongitude(loc_lng);
 
-                                Log.d("DEBUG_IN_LAT_1", String.valueOf(loc_lat));
-                                Log.d("DEBUG_IN_LANG_1", String.valueOf(loc_lng));
+                              //  Log.d("DEBUG_IN_LAT_1", String.valueOf(loc_lat));
+                              //  Log.d("DEBUG_IN_LANG_1", String.valueOf(loc_lng));
 
 
                                 if (isBetterLocation(locaion, previousLocation)) {
                                     String user_lat = String.valueOf(locaion.getLatitude());
                                     String user_lang = String.valueOf(locaion.getLongitude());
 
-                                    Log.d("DEBUG_IN_LAT_2", user_lat);
-                                    Log.d("DEBUG_IN_LANG_2", user_lang);
+                                    AppController.getInstance().getPrefManger().setUserLat(user_lat);
+                                    AppController.getInstance().getPrefManger().setUserLat(user_lang);
+
+
+                                  //  Log.d("DEBUG_IN_LAT_2", user_lat);
+                                  //  Log.d("DEBUG_IN_LANG_2", user_lang);
 
                                     hitUrlForGps(
                                             AppController.getInstance().getPrefManger().getBaseUrl() + Url.URL_SOLDIER_LOCATION,
@@ -239,6 +243,9 @@ public class GpsService extends Service {
         stopService(new Intent(_context, GPSTracker.class));
 
         AppController.getInstance().getPrefManger().setPetrolId("");
+
+        AppController.getInstance().getPrefManger().setUserLat("0");
+        AppController.getInstance().getPrefManger().setUserLat("0");
 
         //stopSelf();
     }
