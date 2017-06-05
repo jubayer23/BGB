@@ -16,10 +16,21 @@ public class MarshMallowPermission {
     public static final int CAMERA_PERMISSION_REQUEST_CODE = 3;
     public static final int PHONE_STATE_PERMISSION_REQUEST_CODE = 4;
     public static final int WAKE_LOCK_PERMISSION_REQUEST_CODE = 5;
+    public static final int LOCATION_PERMISSION_REQUEST_CODE = 6;
     Activity activity;
 
     public MarshMallowPermission(Activity activity) {
         this.activity = activity;
+    }
+
+    public boolean checkPermissionForUserLocation() {
+        int result = ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION);
+        int result2 = ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION);
+        if (result == PackageManager.PERMISSION_GRANTED && result2 ==  PackageManager.PERMISSION_GRANTED) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public boolean checkPermissionForWakeLock() {
@@ -66,6 +77,21 @@ public class MarshMallowPermission {
             return false;
         }
     }
+
+    public void requestPermissionForLocation() {
+        if (checkPermissionForPhoneState())
+            return;
+
+        if (ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.ACCESS_FINE_LOCATION)) {
+            //If the user has denied the permission previously your code will come to this block
+            //Here you can explain why you need this permission
+            //Explain here why you need this permission
+        }
+        //And finally ask for the permission
+        ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                LOCATION_PERMISSION_REQUEST_CODE);
+    }
+
     public void requestPermissionForWakeLock() {
         if (checkPermissionForPhoneState())
             return;

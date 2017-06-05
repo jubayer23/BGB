@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -15,9 +14,9 @@ import android.widget.Toast;
 
 import com.creative.litcircle.NewPillarsEntry;
 import com.creative.litcircle.R;
-import com.creative.litcircle.appdata.AppConstant;
 import com.creative.litcircle.appdata.AppController;
 import com.creative.litcircle.appdata.Url;
+import com.creative.litcircle.model.UploadPillar;
 
 import net.gotev.uploadservice.MultipartUploadRequest;
 import net.gotev.uploadservice.ServerResponse;
@@ -29,18 +28,25 @@ import net.gotev.uploadservice.UploadStatusDelegate;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class UploadActivity extends AppCompatActivity implements UploadStatusDelegate {
+import java.util.List;
+
+public class UploadMultipleFilesActivity extends AppCompatActivity implements UploadStatusDelegate {
 
     public static final String KEY_UPLOAD_RESULT = "upload_result";
     private ProgressBar upload_progressbar;
     private Button btn_upload_cancel;
-    private TextView tv_upload_progress, tv_upload_title;
+    private TextView tv_upload_progress, tv_upload_title,tv_upload_counter;
     private String uploadId = "";
 
     private static final int SUCCESS_CODE = 1;
     private static final int ERROR_CODE = 2;
 
     private boolean isFreezeActivity = true;
+
+    List<UploadPillar> uploadPillars;
+
+
+    private static int total_pillar_need_to_upload = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,17 +55,13 @@ public class UploadActivity extends AppCompatActivity implements UploadStatusDel
 
         init();
 
-        Intent i = getIntent();
 
-        String upload_type = i.getStringExtra(NewPillarsEntry.KEY_UPLOAD_TYPE);
-        String filePath = i.getStringExtra(NewPillarsEntry.KEY_FILE_PATH);
-        String pillar_id = i.getStringExtra(NewPillarsEntry.KEY_PILLAR_ID);
-        String pillar_condition = i.getStringExtra(NewPillarsEntry.KEY_PILLAR_CONDITION);
-        String lat = i.getStringExtra(NewPillarsEntry.KEY_LAT);
-        String lng = i.getStringExtra(NewPillarsEntry.KEY_LNG);
+        uploadPillars = AppController.getInstance().getPrefManger().getUploadPillars();
 
 
-        startUploadingToServer(filePath, pillar_id, pillar_condition, lat, lng, upload_type);
+        total_pillar_need_to_upload = uploadPillars.size();
+        tv_upload_counter.setText((total_pillar_need_to_upload - uploadPillars.size() + 1) +"/" + total_pillar_need_to_upload);
+        startUploadingToServer(uploadPillars.get(0));
 
 
         btn_upload_cancel.setOnClickListener(new View.OnClickListener() {
@@ -79,13 +81,11 @@ public class UploadActivity extends AppCompatActivity implements UploadStatusDel
         tv_upload_progress = (TextView) findViewById(R.id.tv_progress);
         tv_upload_progress.setText("0%");
         tv_upload_title = (TextView) findViewById(R.id.tv_upload_title);
-        TextView tv_upload_counter = (TextView) findViewById(R.id.tv_upload_counter);
-        tv_upload_counter.setVisibility(View.GONE);
-        // tv_upload_title.setText("Creating New Pillar......");
+        tv_upload_counter = (TextView) findViewById(R.id.tv_upload_counter);
+       // tv_upload_title.setText("Creating New Pillar......");
     }
 
-    private void startUploadingToServer(String path, String pillar_id, String pillar_condition, String lat, String lng,
-                                        String pillar_entry_code) {
+    private void startUploadingToServer(UploadPillar uploadPillar) {
         //Uploading code
         //upload_progressbar.setVisibility(View.VISIBLE);
 
@@ -96,12 +96,12 @@ public class UploadActivity extends AppCompatActivity implements UploadStatusDel
             MultipartUploadRequest req = new MultipartUploadRequest(this,
                     AppController.getInstance().getPrefManger().getBaseUrl() + Url.URL_PILLAR_UPDATE)
                     .addParameter("authImie", AppController.getInstance().getPrefManger().getUserProfile().getImieNumber())
-                    .addFileToUpload(path, "file") //Adding file
-                    .addParameter("id", pillar_id)
-                    .addParameter("situation", pillar_condition)
-                    .addParameter("latitude", lat)
-                    .addParameter("longitude", lng)
-                    .addParameter("newEntry", pillar_entry_code)
+                    .addFileToUpload(uploadPillar.getFilePath(), "file") //Adding file
+                    .addParameter("id", uploadPillar.getPillar_id())
+                    .addParameter("situation", uploadPillar.getPillar_condition())
+                    .addParameter("latitude", uploadPillar.getLat())
+                    .addParameter("longitude", uploadPillar.getLng())
+                    .addParameter("newEntry", uploadPillar.getUpload_type())
                     .addParameter("soldierId", AppController.getInstance().getPrefManger().getUserProfile().getId())
                     .setNotificationConfig(new UploadNotificationConfig())
                     .setAutoDeleteFilesAfterSuccessfulUpload(true)
@@ -139,7 +139,20 @@ public class UploadActivity extends AppCompatActivity implements UploadStatusDel
             String result = jsonObject.getString("result");
 
             if (result.equals("1")) {
-                showAlertDialog(SUCCESS_CODE);
+
+                uploadPillars.remove(0);
+
+                if (uploadPillars.isEmpty()) {
+
+                    showAlertDialog(SUCCESS_CODE);
+
+                } else {
+
+                    upload_progressbar.setProgress(0);
+                    tv_upload_counter.setText((total_pillar_need_to_upload - uploadPillars.size() + 1) +"/" + total_pillar_need_to_upload);
+                    startUploadingToServer(uploadPillars.get(0));
+                }
+
             } else {
                 showAlertDialog(ERROR_CODE);
             }
@@ -169,24 +182,12 @@ public class UploadActivity extends AppCompatActivity implements UploadStatusDel
                 android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
         dialog_start.setCancelable(true);
         switch (code) {
-            case 1:
+            case SUCCESS_CODE:
                 dialog_start.setContentView(R.layout.dialog_success);
                 dialog_start.show();
                 break;
-            case 2:
+            case ERROR_CODE:
                 dialog_start.setContentView(R.layout.dialog_error);
-                dialog_start.show();
-                break;
-            case 3:
-                dialog_start.setContentView(R.layout.dialog_error);
-                TextView tv_error_text = (TextView) dialog_start.findViewById(R.id.tv_error_text);
-                tv_error_text.setText("There is something went wrong while uploading to server!");
-                dialog_start.show();
-                break;
-            case 4:
-                dialog_start.setContentView(R.layout.dialog_error);
-                TextView tv_error_text2 = (TextView) dialog_start.findViewById(R.id.tv_error_text);
-                tv_error_text2.setText("You already have an open shift.");
                 dialog_start.show();
                 break;
         }
@@ -214,6 +215,7 @@ public class UploadActivity extends AppCompatActivity implements UploadStatusDel
         setResult(RESULT_OK, data);
         finish();
     }
+
 
 
 }

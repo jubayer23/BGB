@@ -1,34 +1,22 @@
 package com.creative.litcircle.appdata;
 
 import android.app.Application;
-import android.app.ProgressDialog;
-import android.content.Intent;
+import android.support.multidex.MultiDexApplication;
 import android.text.TextUtils;
 
-import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.creative.litcircle.BuildConfig;
-import com.creative.litcircle.HomeActivity;
-import com.creative.litcircle.alertbanner.AlertDialogForAnything;
-import com.creative.litcircle.model.User;
+import com.creative.litcircle.database.SqliteDb;
 import com.creative.litcircle.sharedprefs.PrefManager;
 import com.creative.litcircle.utils.LruBitmapCache;
 
 import net.gotev.uploadservice.UploadService;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.util.HashMap;
-import java.util.Map;
-
-
-public class AppController extends Application {
+public class AppController extends MultiDexApplication {
 
 
     public static final String TAG = AppController.class.getSimpleName();
@@ -42,6 +30,7 @@ public class AppController extends Application {
 
     public  static  int count = 0;
 
+    private static SqliteDb sqliteDbInstance;
 
     private float scale;
 
@@ -50,10 +39,13 @@ public class AppController extends Application {
         super.onCreate();
         mInstance = this;
 
+        sqliteDbInstance = new SqliteDb(this);
+        sqliteDbInstance.open();
 
         pref = new PrefManager(this);
         this.scale = getResources().getDisplayMetrics().density;
         UploadService.NAMESPACE = BuildConfig.APPLICATION_ID;
+
 
     }
 
@@ -61,6 +53,9 @@ public class AppController extends Application {
         return mInstance;
     }
 
+    public static synchronized SqliteDb getsqliteDbInstance() {
+        return sqliteDbInstance;
+    }
 
     public PrefManager getPrefManger() {
         if (pref == null) {

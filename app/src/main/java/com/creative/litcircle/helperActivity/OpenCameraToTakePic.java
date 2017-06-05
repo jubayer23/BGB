@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 
 import com.creative.litcircle.alertbanner.AlertDialogForAnything;
@@ -41,7 +42,9 @@ public class OpenCameraToTakePic extends AppCompatActivity {
     }
 
     public Uri getOutputMediaFileUri() {
-        return Uri.fromFile(AccessDirectory.getOutputMediaFile());
+        //return Uri.fromFile(AccessDirectory.getOutputMediaFile());
+
+       return FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".provider", AccessDirectory.getOutputMediaFile());
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {

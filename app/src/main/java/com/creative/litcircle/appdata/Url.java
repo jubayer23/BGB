@@ -5,7 +5,8 @@ package com.creative.litcircle.appdata;
  */
 public class Url {
 
-    public static String BaseUrl = "http://173.254.242.246:8084/bgb/";
+    public static String BaseUrl = "http://123.49.38.253:8084/bgb/";
+    public static String BaseUrl2 = "http://123.49.38.253:8084/bgb";
 
     //public static String BaseUrl = "https://b5e99a4d.ngrok.io/bgb/";
 

@@ -1,4 +1,4 @@
-package com.creative.litcircle.utils;
+package com.creative.litcircle.service;
 
 import android.Manifest;
 import android.app.Activity;
@@ -14,6 +14,8 @@ import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+
+import com.creative.litcircle.appdata.AppController;
 
 public class GPSTracker extends Service implements LocationListener {
 
@@ -36,7 +38,7 @@ public class GPSTracker extends Service implements LocationListener {
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 0; // 10 meters
 
     // The minimum time between updates in milliseconds
-    private static final long MIN_TIME_BW_UPDATES = 4000; // 1 minute
+    private static final long MIN_TIME_BW_UPDATES = 10000; // 1 minute
 
     private static final int TWO_MINUTES = 1000 * 60 * 2;
 
@@ -177,7 +179,6 @@ public class GPSTracker extends Service implements LocationListener {
         if (isBetterLocation(location, previousBestLocation)){
             previousBestLocation = location;
             this.location = location;
-
            // Log.d("DEBUG_ON_CHANG_2",String.valueOf(this.location.getLatitude()));
            // Log.d("DEBUG_ON_CHANG_2",String.valueOf(this.location.getLongitude()));
         }

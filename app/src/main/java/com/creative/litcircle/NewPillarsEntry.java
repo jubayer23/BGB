@@ -28,7 +28,10 @@ import com.creative.litcircle.appdata.AppController;
 import com.creative.litcircle.appdata.Url;
 import com.creative.litcircle.helperActivity.UploadActivity;
 import com.creative.litcircle.model.Pillar;
+import com.creative.litcircle.model.UploadPillar;
+import com.creative.litcircle.model.PillarValid;
 import com.creative.litcircle.utils.AccessDirectory;
+import com.creative.litcircle.utils.ConnectionDetector;
 import com.creative.litcircle.utils.DeviceInfoUtils;
 import com.creative.litcircle.utils.LastLocationOnly;
 import com.creative.litcircle.helperActivity.OpenCameraToTakePic;
@@ -94,15 +97,54 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
 
     private boolean isAbleToBack = true;
 
+    private ConnectionDetector cd;
+
+    private static boolean isOffline = false;
+
+    String pillar_id = "-100",sub_pillar_name = "-100";
+
+    private UploadPillar uploadPillar;
+
+    private static final int KEY_OFFLINE_SAVE = 1;
+    private static final int KEY_ERROR_SAVE = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_new_pillars_entry);
 
+        onNewIntent(getIntent());
+
         init();
 
-        hitUrlForPillarInfo(AppController.getInstance().getPrefManger().getBaseUrl() + Url.URL_PILLAR_INFO);
+
+        if (cd.isConnectingToInternet()) {
+            isOffline = false;
+            hitUrlForPillarInfo(AppController.getInstance().getPrefManger().getBaseUrl() + Url.URL_PILLAR_INFO);
+        } else if (!AppController.getInstance().getPrefManger().getPillarInfoResponse().isEmpty()) {
+            isOffline = true;
+            parseResponse(AppController.getInstance().getPrefManger().getPillarInfoResponse());
+        }
+
+
+    }
+
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Bundle extras = intent.getExtras();
+        try {
+            if (extras.containsKey("pillar_id")) {
+                pillar_id = extras.getString("pillar_id");
+                sub_pillar_name = extras.getString("sub_pillar_name");
+            } else {
+                // Log.d("DEBUG_inInternt", "No");
+                pillar_id = "-100";
+            }
+        } catch (Exception e) {
+            pillar_id = "-100";
+        }
 
     }
 
@@ -120,10 +162,8 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
             main_pillar_names.add(String.valueOf(entry.getKey()));
 
         }
-        Collections.sort(main_pillar_names, new Comparator<String>()
-        {
-            public int compare(String o1, String o2)
-            {
+        Collections.sort(main_pillar_names, new Comparator<String>() {
+            public int compare(String o1, String o2) {
                 if (o1.equals(TAG_SELECT_MAIN_PILLAR))
                     return -1;
                 if (o2.equals(TAG_SELECT_MAIN_PILLAR))
@@ -161,9 +201,27 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
 
         sp_pillars_condition.setAdapter(dataAdapter_pillars_condition);
 
+
+        if (!pillar_id.equals("-100")) {
+            selectSpinnerItemProgramatically();
+        }
+
+    }
+
+    private void selectSpinnerItemProgramatically() {
+
+        for (int i = 0; i < main_pillar_names.size(); i++) {
+            if (pillar_id.equals(main_pillar_names.get(i))) {
+                sp_pillars_name.setSelection(i);
+                manupulateSubPillar(pillar_id);
+                break;
+            }
+        }
     }
 
     private void init() {
+
+        cd = new ConnectionDetector(NewPillarsEntry.this);
 
         progressDialog = new ProgressDialog(this);
         progressDialog.setIndeterminate(false);
@@ -204,79 +262,26 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
                     @Override
                     public void onResponse(String response) {
 
-                        response = response.replaceAll("\\s+", "");
+                        AppController.getInstance().getPrefManger().setPillarInfoResponse(response);
 
-                        int count = 0;
-
-                        try {
-                            map_pillar_info.clear();
-                            map_sub_pillar.clear();
-                            main_pillar_names.clear();
-
-                            // pillars.clear();
-
-                            JSONArray jsonArray = new JSONArray(response);
-
-
-                            for (int i = 0; i < jsonArray.length(); i++) {
-                                JSONObject jsonObject = jsonArray.getJSONObject(i);
-
-                                String id = jsonObject.getString("id");
-                                String name = jsonObject.getString("name");
-                                String lat = jsonObject.getString("latitude");
-                                String lang = jsonObject.getString("longitude");
-                                String url = jsonObject.getString("url");
-
-
-                                if (Integer.parseInt(id) <= 37) continue;
-
-                                Pillar pillar = new Pillar(id, name, lat, lang, url);
-
-                                //pillars.add(pillar);
-
-                                map_pillar_info.put(pillar.getName(), pillar);
-
-                                String main_sub[] = name.split("/", 2);
-                                //main_pillar_names.add(main_sub[0]);
-
-                                List<String> temp_list;
-                                if (map_sub_pillar.get(main_sub[0]) == null) {
-                                    temp_list = new ArrayList<>();
-                                } else {
-                                    temp_list = map_sub_pillar.get(main_sub[0]);
-                                }
-                                if (main_sub.length > 1) {
-                                    if (main_sub[1].length() > 0) {
-                                        temp_list.add(main_sub[1]);
-                                    }
-                                }
-                                map_sub_pillar.put(main_sub[0], temp_list);
-
-                                count++;
-
-                            }
-
-                            //MANUPULATE SPINNER
-                            manuPulateSpinner();
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-
+                        parseResponse(response);
 
                         showOrHideProgressBar();
 
-
-                        AlertDialogForAnything.showAlertDialogWhenComplte(NewPillarsEntry.this,"SERVER PROBLEM","SERVER DOWN. Please Contact With Server Management!",false);
+                        //AlertDialogForAnything.showAlertDialogWhenComplte(NewPillarsEntry.this,"SERVER PROBLEM","SERVER DOWN. Please Contact With Server Management!",false);
 
                     }
                 }, new com.android.volley.Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
 
+
                 showOrHideProgressBar();
 
-                AlertDialogForAnything.showAlertDialogWhenComplte(NewPillarsEntry.this,"SERVER PROBLEM","SERVER DOWN. Please Contact With Server Management!",false);
+                isOffline = true;
+                parseResponse(AppController.getInstance().getPrefManger().getPillarInfoResponse());
+
+                //AlertDialogForAnything.showAlertDialogWhenComplte(NewPillarsEntry.this, "SERVER PROBLEM", "SERVER DOWN. Please Contact With Server Management!", false);
 
             }
         }) {
@@ -289,11 +294,77 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
             }
         };
 
-        req.setRetryPolicy(new DefaultRetryPolicy(60000,
+        req.setRetryPolicy(new DefaultRetryPolicy(30000,
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         // TODO Auto-generated method stub
         AppController.getInstance().addToRequestQueue(req);
     }
+
+    private void parseResponse(String response) {
+
+        response = response.replaceAll("\\s+", "");
+
+
+        try {
+            map_pillar_info.clear();
+            map_sub_pillar.clear();
+            main_pillar_names.clear();
+
+            // pillars.clear();
+
+            JSONArray jsonArray = new JSONArray(response);
+
+
+            List<PillarValid> pillars = new ArrayList<>();
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+
+                String id = jsonObject.getString("id");
+                String name = jsonObject.getString("name");
+                String lat = jsonObject.getString("latitude");
+                String lang = jsonObject.getString("longitude");
+                String url = jsonObject.getString("url");
+
+
+                if (Integer.parseInt(id) <= 37) continue;
+
+                Pillar pillar = new Pillar(id, name, lat, lang, url);
+                if (!lat.equals("null") && !lang.equals("null")) {
+                    PillarValid pillarValid = new PillarValid(pillar, i);
+                    pillars.add(pillarValid);
+                }
+                //pillars.add(pillar);
+
+                map_pillar_info.put(pillar.getName(), pillar);
+
+                String main_sub[] = name.split("/", 2);
+                //main_pillar_names.add(main_sub[0]);
+
+                List<String> temp_list;
+                if (map_sub_pillar.get(main_sub[0]) == null) {
+                    temp_list = new ArrayList<>();
+                } else {
+                    temp_list = map_sub_pillar.get(main_sub[0]);
+                }
+                if (main_sub.length > 1) {
+                    if (main_sub[1].length() > 0) {
+                        temp_list.add(main_sub[1]);
+                    }
+                }
+                map_sub_pillar.put(main_sub[0], temp_list);
+
+            }
+
+
+            AppController.getInstance().getPrefManger().setPillars(pillars);
+            //MANUPULATE SPINNER
+            manuPulateSpinner();
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     private void showOrHideProgressBar() {
         if (progressDialog.isShowing()) {
@@ -318,7 +389,7 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
 
         }
 
-        if (!DeviceInfoUtils.checkInternetConnectionAndGps(this)) return;
+        if (!DeviceInfoUtils.checkGps(this)) return;
 
 
         if (id == R.id.btn_submit) {
@@ -367,19 +438,51 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
                         pillar_name = pillar_name + "/" + sub_pillar_name;
                     }
 
-                    Intent i = new Intent(NewPillarsEntry.this, UploadActivity.class);
-                    if (map_pillar_info.get(pillar_name).getLatitude().equalsIgnoreCase("null")) {
-                        i.putExtra(KEY_UPLOAD_TYPE, AppConstant.pillar_entry_new);
-                    } else {
-                        i.putExtra(KEY_UPLOAD_TYPE, AppConstant.pillar_entry_update);
-                    }
-                    i.putExtra(KEY_FILE_PATH, filePath);
-                    i.putExtra(KEY_PILLAR_ID, map_pillar_info.get(pillar_name).getId());
-                    i.putExtra(KEY_PILLAR_CONDITION, pillar_condition);
-                    i.putExtra(KEY_LAT, String.valueOf(lastLocationOnly.getLatitude()));
-                    i.putExtra(KEY_LNG, String.valueOf(lastLocationOnly.getLongitude()));
 
-                    startActivityForResult(i, UPLOAD_REQUEST);
+                    String upload_type = "";
+                    if (map_pillar_info.get(pillar_name).getLatitude().equalsIgnoreCase("null")) {
+                        upload_type = AppConstant.pillar_entry_new;
+                    } else {
+                        upload_type = AppConstant.pillar_entry_update;
+                    }
+
+                    uploadPillar = new
+                            UploadPillar(
+                            upload_type,
+                            filePath,
+                            map_pillar_info.get(pillar_name).getId(),
+                            pillar_condition,
+                            String.valueOf(lastLocationOnly.getLatitude()),
+                            String.valueOf(lastLocationOnly.getLongitude())
+                    );
+
+
+                    if (!isOffline) {
+                        Intent i = new Intent(NewPillarsEntry.this, UploadActivity.class);
+                        i.putExtra(KEY_UPLOAD_TYPE, upload_type);
+                        i.putExtra(KEY_FILE_PATH, filePath);
+                        i.putExtra(KEY_PILLAR_ID, map_pillar_info.get(pillar_name).getId());
+                        i.putExtra(KEY_PILLAR_CONDITION, pillar_condition);
+                        i.putExtra(KEY_LAT, String.valueOf(lastLocationOnly.getLatitude()));
+                        i.putExtra(KEY_LNG, String.valueOf(lastLocationOnly.getLongitude()));
+
+                        startActivityForResult(i, UPLOAD_REQUEST);
+                    } else {
+
+
+                        List<UploadPillar> uploadPillars =
+                                AppController.getInstance().getPrefManger().getUploadPillars();
+
+                        uploadPillars.add(uploadPillar);
+
+                        AppController.getInstance().getPrefManger().setUploadPillars(uploadPillars);
+
+
+                        showOfflineAlert();
+
+
+                    }
+
                 }
             });
 
@@ -409,7 +512,7 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
                     st_time = 0;
                     finish();
                 } else {
-                    makeViewDefaultAgain();
+                    showPillarUploadFiledAlert();
                 }
             }
         }
@@ -439,6 +542,59 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+
+    private void showPillarUploadFiledAlert() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+
+        alertDialog.setTitle("Alert!!");
+
+        alertDialog.setMessage("Because of slow internet connection photo upload failed!! Do you want to save this information?");
+
+        alertDialog.setPositiveButton("OKAY", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+
+                List<UploadPillar> uploadPillars =
+                        AppController.getInstance().getPrefManger().getUploadPillars();
+
+                uploadPillars.add(uploadPillar);
+
+                AppController.getInstance().getPrefManger().setUploadPillars(uploadPillars);
+
+                showOfflineAlert();
+
+            }
+        });
+
+        alertDialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                makeViewDefaultAgain();
+            }
+        });
+
+
+        alertDialog.show();
+
+    }
+
+    private void showOfflineAlert() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+
+        alertDialog.setTitle("Alert!!");
+
+
+        alertDialog.setMessage("You are now offline mode. The information you submitted right now will be saved temporarily. When you connected to the internet please click \"Submit Pending Pillars\" from the home page.");
+
+        alertDialog.setPositiveButton("OKAY", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+
+                finish();
+            }
+        });
+
+
+        alertDialog.show();
+    }
 
     public Uri getOutputMediaFileUri() {
         return Uri.fromFile(AccessDirectory.getOutputMediaFile());
@@ -501,7 +657,7 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
     }
 
 
-    private static int st_time = 0;
+    public static int st_time = 0;
 
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long id) {
@@ -511,14 +667,20 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
             return;
         }
 
+        manupulateSubPillar(adapterView.getItemAtPosition(i).toString());
+
+
+    }
+
+
+    private void manupulateSubPillar(String main_pillar_name){
         showOrHideProgressBar();
 
         sub_pillar_names.clear();
         sub_pillar_names.add(TAG_SELECT_SUB_PILLAR);
 
-        String selected_main_pillar = adapterView.getItemAtPosition(i).toString();
 
-        List<String> temp_sub_pillars = map_sub_pillar.get(selected_main_pillar);
+        List<String> temp_sub_pillars = map_sub_pillar.get(main_pillar_name);
 
         if (!temp_sub_pillars.isEmpty()) {
             sub_pillar_names.addAll(temp_sub_pillars);
@@ -528,15 +690,20 @@ public class NewPillarsEntry extends AppCompatActivity implements View.OnClickLi
 
         dataAdapter_sub_pillars_name.notifyDataSetChanged();
 
-        showOrHideProgressBar();
+        for (int i = 0; i < sub_pillar_names.size(); i++) {
+            if (sub_pillar_name.equals(sub_pillar_names.get(i))) {
+                sp_sub_pillars_name.setSelection(i);
+                break;
+            }
+        }
 
+        showOrHideProgressBar();
     }
 
     @Override
     public void onNothingSelected(AdapterView<?> adapterView) {
 
     }
-
 
 
 }

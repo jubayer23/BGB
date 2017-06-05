@@ -1,36 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-   >
+    android:layout_height="match_parent">
 
     <Button
         android:id="@+id/btn_startpetroling"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="15dp"
-        android:paddingBottom="15dp"
         android:layout_margin="20dp"
         android:background="@drawable/btn_selector_start_patrolling"
+        android:paddingBottom="15dp"
+        android:paddingTop="15dp"
         android:text="Start Patrolling"
         android:textColor="@color/white"
-        android:textSize="30sp"
+        android:textSize="25sp"
         android:textStyle="bold" />
 
     <Button
         android:id="@+id/btn_stoppatrolling"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="15dp"
-        android:paddingBottom="15dp"
         android:layout_margin="20dp"
         android:background="@drawable/btn_selector_stop_patrolling"
+        android:paddingBottom="15dp"
+        android:paddingTop="15dp"
         android:text="Stop Patrolling"
         android:textColor="@color/white"
-        android:visibility="gone"
-        android:textSize="30sp"
-        android:textStyle="bold" />
+        android:textSize="25sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
 
 
     <LinearLayout
@@ -43,31 +41,59 @@
             android:id="@+id/btn_new_pillar_entry"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="15dp"
-            android:paddingBottom="15dp"
             android:layout_margin="20dp"
-            android:visibility="gone"
             android:background="@drawable/btn_selector_start_patrolling"
+            android:paddingBottom="15dp"
+            android:paddingTop="15dp"
             android:text="Pillar Update"
             android:textColor="@color/white"
-            android:textSize="30sp"
-            android:textStyle="bold" />
+            android:textSize="25sp"
+            android:textStyle="bold"
+            android:visibility="visible" />
 
         <Button
             android:id="@+id/btn_special_ops"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="15dp"
-            android:paddingBottom="15dp"
             android:layout_margin="20dp"
             android:background="@drawable/btn_selector_special_ops"
+            android:paddingBottom="15dp"
+            android:paddingTop="15dp"
             android:text="Special Operation"
             android:textColor="@color/white"
-            android:textSize="30sp"
+            android:textSize="25sp"
             android:textStyle="bold" />
 
 
     </LinearLayout>
 
+
+    <Button
+        android:id="@+id/btn_upload_pending_pillar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@drawable/btn_selector_upload_pending_pillar"
+        android:paddingBottom="15dp"
+        android:paddingTop="15dp"
+        android:text="Upload Pending Pillars (3)"
+        android:textColor="@color/white"
+        android:layout_marginBottom="40dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:textSize="25sp"
+        android:textStyle="bold" />
+
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/map"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="10dp"
+        android:background="@color/light_gray_header_color"
+        android:layout_marginBottom="@dimen/fab_margin"
+        android:src="@drawable/icon_map" />
 
 </RelativeLayout>

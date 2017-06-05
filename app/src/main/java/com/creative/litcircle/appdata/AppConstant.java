@@ -17,7 +17,7 @@ public class AppConstant {
 
     public static final String[] pillars_condition = {"Good", "Average", "Bad" ,"Broken" ,"Missing"};
 
-    public static final String[] gps_interval = {"5","20", "40", "50", "60", "300", "900", "1800", "3600"};
+    public static final String[] gps_interval = {"5","30", "40", "50", "60", "300", "900", "1800", "3600"};
 
 
     public static final String[] mission_type = {"Smuggling", "Human Trafficking", "BOP Internal" ,"Miscellaneous" ,"Others"};

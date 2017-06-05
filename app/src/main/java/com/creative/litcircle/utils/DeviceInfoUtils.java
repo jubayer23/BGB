@@ -6,6 +6,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.media.AudioManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.telephony.TelephonyManager;
@@ -95,6 +98,70 @@ public class DeviceInfoUtils {
         return "";
     }
 
+    public static   boolean checkGps(Context context){
+
+        ConnectionDetector cd = new ConnectionDetector(context);
+        GpsEnableTool gpsEnableTool =  new GpsEnableTool(context);
+
+        if (!cd.isGoogelPlayInstalled()) {
+            //Internet Connection is not present
+            AlertDialogForAnything.showAlertDialogWhenComplte(context, "Google Play Services",
+                    "No google play services!!!Please Install google play services", false);
+            return false;
+            //stop executing code by return
+        }
+
+        LastLocationOnly lGps = new LastLocationOnly(context);
+
+
+        if(!lGps.canGetLocation()){
+            gpsEnableTool.enableGPs();
+            return false;
+        }
+        //CHECK PERMISSOIN
+        return true;
+    }
+
+    public static String getNetworkType(Context context) {
+        TelephonyManager mTelephonyManager = (TelephonyManager)
+                context.getSystemService(Context.TELEPHONY_SERVICE);
+        int networkType = mTelephonyManager.getNetworkType();
+        switch (networkType) {
+            case TelephonyManager.NETWORK_TYPE_GPRS:
+            case TelephonyManager.NETWORK_TYPE_EDGE:
+            case TelephonyManager.NETWORK_TYPE_CDMA:
+            case TelephonyManager.NETWORK_TYPE_1xRTT:
+            case TelephonyManager.NETWORK_TYPE_IDEN:
+                return "2G";
+            case TelephonyManager.NETWORK_TYPE_UMTS:
+            case TelephonyManager.NETWORK_TYPE_EVDO_0:
+            case TelephonyManager.NETWORK_TYPE_EVDO_A:
+            case TelephonyManager.NETWORK_TYPE_HSDPA:
+            case TelephonyManager.NETWORK_TYPE_HSUPA:
+            case TelephonyManager.NETWORK_TYPE_HSPA:
+            case TelephonyManager.NETWORK_TYPE_EVDO_B:
+            case TelephonyManager.NETWORK_TYPE_EHRPD:
+            case TelephonyManager.NETWORK_TYPE_HSPAP:
+                return "3G";
+            case TelephonyManager.NETWORK_TYPE_LTE:
+                return "4G";
+            default:
+                return "Unknown";
+        }
+    }
+
+    /**
+     * To check device has internet
+     *
+     * @param context
+     * @return boolean as per status
+     */
+    public static boolean isNetworkConnected(Context context) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnected();
+    }
+
     public static   boolean checkInternetConnectionAndGps(Context context){
 
         ConnectionDetector cd = new ConnectionDetector(context);
@@ -136,21 +203,25 @@ public class DeviceInfoUtils {
 
         if (!mp.checkPermissionForCamera()) {
             mp.requestPermissionForCamera();
-            return_value = false;
+            return false;
         }
 
         if (!mp.checkPermissionForExternalStorage()) {
             mp.requestPermissionForExternalStorage();
-            return_value =  false;
+            return  false;
         }
 
         if (!mp.checkPermissionForPhoneState()) {
             mp.requestPermissionForPhoneState();
-            return_value =  false;
+            return  false;
         }
         if (!mp.checkPermissionForWakeLock()) {
             mp.requestPermissionForWakeLock();
-            return_value =  false;
+            return  false;
+        }
+        if (!mp.checkPermissionForUserLocation()) {
+            mp.requestPermissionForLocation();
+            return  false;
         }
 
         return return_value;
@@ -167,5 +238,27 @@ public class DeviceInfoUtils {
 
         }
         return imie;
+    }
+
+
+    public static void increaseDeviceSound(Context mContext){
+        AudioManager mobilemode = (AudioManager)mContext.getSystemService(Context.AUDIO_SERVICE);
+//   int streamMaxVolume = mobilemode.getStreamMaxVolume(AudioManager.STREAM_RING);
+       // mobilemode.setStreamVolume(AudioManager.STREAM_MUSIC, 100, 0);
+       // mobilemode.setStreamVolume(AudioManager.STREAM_RING, 100, 0);
+        switch (mobilemode.getRingerMode()) {
+            case AudioManager.RINGER_MODE_SILENT:
+
+                mobilemode.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+                mobilemode.setStreamVolume(AudioManager.STREAM_RING,mobilemode.getStreamMaxVolume(AudioManager.STREAM_RING),0);
+                break;
+            case AudioManager.RINGER_MODE_VIBRATE:
+                mobilemode.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+                mobilemode.setStreamVolume(AudioManager.STREAM_RING,mobilemode.getStreamMaxVolume(AudioManager.STREAM_RING),0);
+                break;
+            case AudioManager.RINGER_MODE_NORMAL:
+                break;
+
+        }
     }
 }

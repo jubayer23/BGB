@@ -5,7 +5,6 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -30,7 +29,6 @@ import com.creative.litcircle.utils.MarshMallowPermission;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,31 +52,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Calendar c = Calendar.getInstance();
-        int day = c.get(Calendar.DAY_OF_MONTH);
-        int month = c.get(Calendar.MONTH);
-        if (month > 4) {
-            AlertDialogForAnything.showAlertDialogWhenComplte(this, "SERVER DOWN", "SERVER DOWN(under construction!)", false);
-        } else {
+        init();
 
-            init();
+        String version = DeviceInfoUtils.getAppVersionName();
 
-            String version = DeviceInfoUtils.getAppVersionName();
+        // Log.d("DEBUG_CURRENT_V_O", version);
 
-           // Log.d("DEBUG_CURRENT_V_O", version);
+        // Log.d("DEBUG_PREF_V_O", AppController.getInstance().getPrefManger().getAppVersion());
 
-           // Log.d("DEBUG_PREF_V_O", AppController.getInstance().getPrefManger().getAppVersion());
+        if (!version.equalsIgnoreCase(AppController.getInstance().getPrefManger().getAppVersion())) {
 
-            if (!version.equalsIgnoreCase(AppController.getInstance().getPrefManger().getAppVersion())) {
-
-                if (DeviceInfoUtils.checkMarshMallowPermission(this)) {
-                    AlertDialogForAnything.showAlertDialogForceUpdateFromDropBox(MainActivity.this,
-                            "App Update", "Press Download To Download The Updated App", "DOWNLOAD",
-                            AppConstant.APP_UPDATE_URL);
-                }
+            if (DeviceInfoUtils.checkMarshMallowPermission(this)) {
+                AlertDialogForAnything.showAlertDialogForceUpdateFromDropBox(MainActivity.this,
+                        "App Update", "Press Download To Download The Updated App", "DOWNLOAD",
+                        AppConstant.APP_UPDATE_URL);
             }
-
         }
+
 
     }
 
@@ -89,11 +79,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         DeviceInfoUtils.checkInternetConnectionAndGps(this);
         DeviceInfoUtils.checkMarshMallowPermission(MainActivity.this);
 
-      //  String version = DeviceInfoUtils.getAppVersionName();
+        //  String version = DeviceInfoUtils.getAppVersionName();
 
-       // Log.d("DEBUG_CURRENT_R", version);
+        // Log.d("DEBUG_CURRENT_R", version);
 
-       // Log.d("DEBUG_PREF_R", AppController.getInstance().getPrefManger().getAppVersion());
+        // Log.d("DEBUG_PREF_R", AppController.getInstance().getPrefManger().getAppVersion());
 
     }
 
@@ -103,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         gpsEnableTool = new GpsEnableTool(this);
 
-        tv_version_name = (TextView)findViewById(R.id.tv_app_version);
+        tv_version_name = (TextView) findViewById(R.id.tv_app_version);
         tv_version_name.setText("V " + DeviceInfoUtils.getAppVersionName());
 
         ed_userid = (EditText) findViewById(R.id.ed_userid);
@@ -178,8 +168,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void onResponse(String response) {
 
-                        showOrHideProgressBar();
-
                         response = response.replaceAll("\\s+", "");
 
                         try {
@@ -192,19 +180,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 User user = new User(id, user_id, imieNumber);
                                 AppController.getInstance().getPrefManger().setUserProfile(user);
 
-                                Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-                                startActivity(intent);
-                                finish();
+
+                                hitUrlForPillarInfo(
+                                        AppController.getInstance().getPrefManger().getBaseUrl()
+                                                + Url.URL_PILLAR_INFO);
+
                             } else if (status == -1) {
+                                showOrHideProgressBar();
                                 AlertDialogForAnything.showAlertDialogWhenComplte(MainActivity.this, "UnAuthorized", "Your Device Is Not Authorized", false);
 
                             } else {
-
+                                showOrHideProgressBar();
                                 AlertDialogForAnything.showAlertDialogWhenComplte(MainActivity.this, "Wrong Information", "Wrong Information", false);
 
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
+                            showOrHideProgressBar();
                         }
 
 
@@ -234,6 +226,55 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         AppController.getInstance().addToRequestQueue(req);
     }
 
+    private void goTotheHomePage() {
+        Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
+    private void hitUrlForPillarInfo(String url) {
+
+        // TODO Auto-generated method stub
+        // showOrHideProgressBar();
+
+        final StringRequest req = new StringRequest(com.android.volley.Request.Method.POST, url,
+                new com.android.volley.Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+
+                        response = response.replaceAll("\\s+", "");
+
+                        AppController.getInstance().getPrefManger().setPillarInfoResponse(response);
+
+                        showOrHideProgressBar();
+
+                        goTotheHomePage();
+
+                    }
+                }, new com.android.volley.Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+                showOrHideProgressBar();
+
+                goTotheHomePage();
+
+            }
+        }) {
+            @Override
+            protected Map<String, String> getParams() {
+                //userId=XXX&routeId=XXX&selected=XXX
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("authImie", AppController.getInstance().getPrefManger().getUserProfile().getImieNumber());
+                return params;
+            }
+        };
+
+        req.setRetryPolicy(new DefaultRetryPolicy(60000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        // TODO Auto-generated method stub
+        AppController.getInstance().addToRequestQueue(req);
+    }
 
     private void showOrHideProgressBar() {
 
