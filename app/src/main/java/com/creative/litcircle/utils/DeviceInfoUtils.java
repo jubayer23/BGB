@@ -4,8 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -14,9 +12,7 @@ import android.os.Build;
 import android.telephony.TelephonyManager;
 
 import com.creative.litcircle.BuildConfig;
-import com.creative.litcircle.MainActivity;
 import com.creative.litcircle.alertbanner.AlertDialogForAnything;
-import com.creative.litcircle.appdata.AppConstant;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;

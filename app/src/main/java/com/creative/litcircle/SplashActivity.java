@@ -1,25 +1,19 @@
 package com.creative.litcircle;
 
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Parcelable;
-import android.provider.SyncStateContract;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
-import com.creative.litcircle.alertbanner.AlertDialogForAnything;
 import com.creative.litcircle.appdata.AppConstant;
 import com.creative.litcircle.appdata.AppController;
 import com.creative.litcircle.appdata.Url;
 import com.creative.litcircle.utils.ConnectionDetector;
 import com.creative.litcircle.utils.DeviceInfoUtils;
-import com.creative.litcircle.utils.LastLocationOnly;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -153,7 +147,7 @@ public class SplashActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         } else {
-            Intent intent = new Intent(SplashActivity.this, MainActivity.class);
+            Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
             startActivity(intent);
             finish();
         }

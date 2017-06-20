@@ -2,26 +2,21 @@ package com.creative.litcircle;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.ExpandableListView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
@@ -42,7 +37,6 @@ import com.creative.litcircle.receiver.NetworkStateReceiver;
 import com.creative.litcircle.userview.AboutActivity;
 import com.creative.litcircle.utils.ConnectionDetector;
 import com.creative.litcircle.utils.DeviceInfoUtils;
-import com.creative.litcircle.utils.LastLocationOnly;
 import com.creative.litcircle.utils.MarshMallowPermission;
 
 import org.json.JSONArray;
@@ -225,7 +219,7 @@ public class HomeActivity extends AppCompatActivity {
                 }
 
                 if (listDataHeader.get(i).contains(DRAWER_LIST_NEWENTRY)) {
-                    //Intent intent = new Intent(MainActivity.this, SettingActivity.class);
+                    //Intent intent = new Intent(LoginActivity.this, SettingActivity.class);
                     //startActivity(intent);
                     // MainFragment fragment = (MainFragment) getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT);
                     //fragment.devices();
@@ -258,7 +252,7 @@ public class HomeActivity extends AppCompatActivity {
                     startActivity(intent);
                 }
                 if (listDataHeader.get(i).contains(DRAWER_LIST_SIGNOUT)) {
-                    //Intent intent = new Intent(MainActivity.this, SettingActivity.class);
+                    //Intent intent = new Intent(LoginActivity.this, SettingActivity.class);
                     //startActivity(intent);
                     // MainFragment fragment = (MainFragment) getSupportFragmentManager().findFragmentByTag(TAG_FRAGMENT);
                     // fragment.logout();
@@ -282,7 +276,7 @@ public class HomeActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int which) {
 
                                 AppController.getInstance().getPrefManger().setUserProfile("");
-                                startActivity(new Intent(HomeActivity.this, MainActivity.class));
+                                startActivity(new Intent(HomeActivity.this, LoginActivity.class));
                                 finish();
 
                             }

@@ -32,7 +32,7 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
 
     private ConnectionDetector cd;
@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (!version.equalsIgnoreCase(AppController.getInstance().getPrefManger().getAppVersion())) {
 
             if (DeviceInfoUtils.checkMarshMallowPermission(this)) {
-                AlertDialogForAnything.showAlertDialogForceUpdateFromDropBox(MainActivity.this,
+                AlertDialogForAnything.showAlertDialogForceUpdateFromDropBox(LoginActivity.this,
                         "App Update", "Press Download To Download The Updated App", "DOWNLOAD",
                         AppConstant.APP_UPDATE_URL);
             }
@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onResume();
 
         DeviceInfoUtils.checkInternetConnectionAndGps(this);
-        DeviceInfoUtils.checkMarshMallowPermission(MainActivity.this);
+        DeviceInfoUtils.checkMarshMallowPermission(LoginActivity.this);
 
         //  String version = DeviceInfoUtils.getAppVersionName();
 
@@ -187,11 +187,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                             } else if (status == -1) {
                                 showOrHideProgressBar();
-                                AlertDialogForAnything.showAlertDialogWhenComplte(MainActivity.this, "UnAuthorized", "Your Device Is Not Authorized", false);
+                                AlertDialogForAnything.showAlertDialogWhenComplte(LoginActivity.this, "UnAuthorized", "Your Device Is Not Authorized", false);
 
                             } else {
                                 showOrHideProgressBar();
-                                AlertDialogForAnything.showAlertDialogWhenComplte(MainActivity.this, "Wrong Information", "Wrong Information", false);
+                                AlertDialogForAnything.showAlertDialogWhenComplte(LoginActivity.this, "Wrong Information", "Wrong Information", false);
 
                             }
                         } catch (JSONException e) {
@@ -206,6 +206,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onErrorResponse(VolleyError error) {
 
                 showOrHideProgressBar();
+
+                AlertDialogForAnything.showAlertDialogWhenComplte(LoginActivity.this, "Server Problem", "Server is down Please contact with the server guy!", false);
+
             }
         }) {
             @Override
@@ -227,7 +230,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void goTotheHomePage() {
-        Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+        Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
         startActivity(intent);
         finish();
     }
@@ -371,7 +374,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     return;
                 }
                 if (password.equals(AppConstant.ADMIN_PASSWORD)) {
-                    Intent intent = new Intent(MainActivity.this, SettingActivity.class);
+                    Intent intent = new Intent(LoginActivity.this, SettingActivity.class);
                     startActivity(intent);
 
                     dialog.dismiss();

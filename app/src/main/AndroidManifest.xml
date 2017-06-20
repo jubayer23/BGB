@@ -34,7 +34,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppThemeNoActionBar">
         <activity
-            android:name=".MainActivity"
+            android:name=".LoginActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppThemeNoActionBar" />
         <activity
@@ -86,11 +86,11 @@
         <activity
             android:name=".ReportToBgbActivity"
             android:label="@string/title_activity_report_to_bgb"
-            android:parentActivityName=".MainActivity"
+            android:parentActivityName=".LoginActivity"
             android:theme="@style/AppTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.creative.litcircle.MainActivity" />
+                android:value=".LoginActivity" />
         </activity>
         <activity
             android:name=".userview.AboutActivity"
@@ -108,11 +108,11 @@
         <activity
             android:name=".userview.SettingActivity"
             android:label="@string/title_setting"
-            android:parentActivityName=".MainActivity"
+            android:parentActivityName=".LoginActivity"
             android:theme="@style/AppTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.creative.litcircle.MainActivity" />
+                android:value=".LoginActivity" />
         </activity>
 
 

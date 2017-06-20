@@ -404,12 +404,14 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
 
                         dismissProgressDialog();
 
+
+
                         response = response.replaceAll("\\s+", "");
 
                         try {
                             JSONObject jsonObject = new JSONObject(response);
                             String result = jsonObject.getString("result");
-                            if (result.equals("1") && AppController.getInstance().getPrefManger().getPetrolId().isEmpty()) {
+                            if (result.equals("1") ) {
 
                                 AppController.getInstance().getPrefManger().setPetrolId(jsonObject.getString("patrolId"));
 
@@ -417,10 +419,14 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
 
                             } else {
                                 AlertDialogForAnything.showAlertDialogWhenComplte(getActivity(),
-                                        "Error", "Something went wrong!", false);
+                                        "Error", response, false);
+                               // AlertDialogForAnything.showAlertDialogWhenComplte(getActivity(),
+                               //         "Error", "Something went wrong!", false);
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
+                            AlertDialogForAnything.showAlertDialogWhenComplte(getActivity(),
+                                    "Error", "Server Down!! Please contact with server person!!!", false);
                         }
 
                     }
